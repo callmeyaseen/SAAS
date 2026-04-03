@@ -9,12 +9,20 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import dj_database_url
 import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Database
+# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+DATABASES = {
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'postgresql://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v')
+    )
+}
 
 
 # Quick-start development settings - unsuitable for production
