@@ -1,0 +1,40 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-6">GRN List</h2>
+
+<table class="w-full border">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">GRN No</th>
+<th class="border p-2">PO</th>
+<th class="border p-2">Vendor</th>
+<th class="border p-2">Date</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for grn in grns %}
+
+<tr>
+<td class="border p-2">{{ grn.grn_no }}</td>
+<td class="border p-2">{{ grn.po.po_no }}</td>
+<td class="border p-2">{{ grn.supplier }}</td>
+<td class="border p-2">{{ grn.received_date }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

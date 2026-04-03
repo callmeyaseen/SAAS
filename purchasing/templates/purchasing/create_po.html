@@ -1,0 +1,124 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-6">Create Purchase Order</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- FIND MPR -->
+<div class="flex gap-2 mb-6">
+
+<input
+type="text"
+name="search_mpr"
+placeholder="Enter MPR Number"
+class="border p-2 rounded w-60">
+
+<button
+type="submit"
+name="find_mpr"
+class="bg-gray-600 text-white px-4 py-2 rounded">
+Find
+</button>
+
+</div>
+
+<!-- SUPPLIER -->
+<div class="mb-6">
+
+<label class="block mb-2 font-semibold">Supplier</label>
+
+<select name="supplier" class="border p-2 rounded w-80">
+
+<option value="">Select Supplier</option>
+
+{% for v in vendors %}
+
+<option value="{{ v.id }}" 
+{% if auto_supplier and auto_supplier.id == v.id %}selected{% endif %}>
+{{ v.vendor_name }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+{% if mpr_items %}
+
+<input type="hidden" name="mpr_id" value="{{ selected_mpr.id }}">
+
+<table class="w-full border border-gray-300 mb-4">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">Yarn</th>
+<th class="border p-2">MPR Qty</th>
+<th class="border p-2">PO Qty</th>
+<th class="border p-2">Rate</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for item in mpr_items %}
+
+<tr>
+
+<td class="border p-2">
+{{ item.item.item_name }}
+</td>
+
+<td class="border p-2">
+{{ item.quantity }}
+</td>
+
+<td class="border p-2">
+
+<input
+type="number"
+name="qty_{{ item.id }}"
+value="{{ item.quantity }}"
+class="border p-1 w-full">
+
+</td>
+
+<td class="border p-2">
+
+<input
+type="number"
+name="rate_{{ item.id }}"
+class="border p-1 w-full">
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endif %}
+
+<button
+type="submit"
+class="bg-blue-600 text-white px-6 py-2 rounded">
+
+Save Purchase Order
+
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}

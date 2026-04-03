@@ -1,0 +1,100 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="flex justify-center p-2">
+
+<div class="bg-white border border-gray-300 rounded-lg shadow-md p-2 w-full max-w-2xl">
+
+<h2 class="text-2xl font-bold mb-6 text-center">Vendor Entry</h2>
+
+<!-- Messages -->
+{% if messages %}
+{% for message in messages %}
+<div class="bg-green-100 text-green-700 px-4 py-2 rounded mb-4">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- FIND FORM -->
+<form method="POST" class="flex gap-2 mb-4">
+{% csrf_token %}
+<input type="text" name="search_code"
+placeholder="Enter Vendor Code"
+class="border rounded px-3 py-2 w-64">
+
+{% if perms.utilities.view_vendor %}
+<button name="find"
+class="bg-gray-700 text-white px-4 rounded">
+Find
+</button>
+{% endif %}
+</form>
+
+<!-- SAVE / UPDATE / DELETE FORM -->
+<form method="POST" class="space-y-3">
+{% csrf_token %}
+
+<input type="hidden" name="vendor_code" value="{{ vendor.vendor_code }}">
+
+<div>
+<label>Vendor Name</label>
+<input type="text" name="vendor_name"
+value="{{ vendor.vendor_name|default:'' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Phone</label>
+<input type="text" name="phone"
+value="{{ vendor.phone|default:'' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Email</label>
+<input type="email" name="email"
+value="{{ vendor.email|default:'' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Address</label>
+<textarea name="address"
+class="w-full border rounded px-3 py-2 h-20">{{ vendor.address|default:'' }}</textarea>
+</div>
+
+<div class="flex gap-2">
+
+{% if perms.utilities.add_vendor %}
+<button name="save"
+class="bg-blue-600 text-white px-4 py-2 rounded">
+Save
+</button>
+{% endif %}
+
+{% if perms.utilities.change_vendor %}
+<button name="update"
+class="bg-green-600 text-white px-4 py-2 rounded">
+Update
+</button>
+{% endif %}
+
+{% if perms.utilities.delete_vendor %}
+<button name="delete"
+onclick="return confirm('Delete this vendor?')"
+class="bg-red-600 text-white px-4 py-2 rounded">
+Delete
+</button>
+{% endif %}
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}

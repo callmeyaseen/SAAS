@@ -1,0 +1,79 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-8 rounded shadow max-w-6xl mx-auto">
+
+    <h2 class="text-2xl font-bold mb-8">Yarn Audit Filter</h2>
+
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- FILTER SECTION -->
+        <div class="grid grid-cols-4 gap-6">
+
+            <!-- From Date -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">
+                    From Date
+                </label>
+                <input type="date" name="from_date"
+                       class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400">
+            </div>
+
+            <!-- To Date -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">
+                    To Date
+                </label>
+                <input type="date" name="to_date"
+                       class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400">
+            </div>
+
+            <!-- Created By -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">
+                    Created By
+                </label>
+                <select name="created_by"
+                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400">
+                    <option value="">All Users</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">
+                            {{ user.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Item Name -->
+            <div>
+                <label class="block text-sm font-semibold mb-2">
+                    Item Name
+                </label>
+                <input type="text" name="item_name"
+                       placeholder="Search by item..."
+                       class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-400">
+            </div>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="flex justify-between mt-6">
+
+            <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Generate Report
+            </button>
+
+            <button type="reset"
+                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                Reset
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

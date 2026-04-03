@@ -1,0 +1,78 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-4">Purchase Orders</h2>
+
+<a href="{% url 'create_po' %}"
+class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">
+
+Create PO
+
+</a>
+
+<table class="w-full border">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">PO No</th>
+<th class="border p-2">Supplier</th>
+<th class="border p-2">Date</th>
+<th class="border p-2">Status</th>
+<th class="border p-2">Total</th>
+<th class="border p-2">Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for po in pos %}
+
+<tr>
+
+<td class="border p-2">{{ po.po_no }}</td>
+
+<td class="border p-2">{{ po.supplier }}</td>
+
+<td class="border p-2">{{ po.date }}</td>
+
+<td class="border p-2">
+
+{% if po.status == "Pending" %}
+<span class="text-yellow-600 font-semibold">Pending</span>
+{% elif po.status == "Approved" %}
+<span class="text-green-600 font-semibold">Approved</span>
+{% else %}
+<span class="text-red-600 font-semibold">Rejected</span>
+{% endif %}
+
+</td>
+
+<td class="border p-2">{{ po.total_amount }}</td>
+
+<td class="border p-2">
+
+<a
+href="{% url 'po_detail' po.id %}"
+class="text-blue-600">
+
+View
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

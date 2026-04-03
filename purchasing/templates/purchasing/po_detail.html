@@ -1,0 +1,72 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-4">
+
+Purchase Order {{ po.po_no }}
+
+</h2>
+
+<p><strong>Supplier:</strong> {{ po.supplier }}</p>
+<p><strong>Date:</strong> {{ po.date }}</p>
+<p><strong>Status:</strong> {{ po.status }}</p>
+
+<table class="w-full border mt-4">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">Yarn</th>
+<th class="border p-2">MPR Qty</th>
+<th class="border p-2">PO Qty</th>
+<th class="border p-2">Rate</th>
+<th class="border p-2">Amount</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for item in items %}
+
+<tr>
+
+<td class="border p-2">
+{{ item.item.item_name }}
+</td>
+
+<td class="border p-2">
+{{ item.mpr_quantity }}
+</td>
+
+<td class="border p-2">
+{{ item.quantity }}
+</td>
+
+<td class="border p-2">
+{{ item.rate }}
+</td>
+
+<td class="border p-2">
+{{ item.amount }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<h3 class="mt-4 font-bold">
+
+Total: {{ total_amount }}
+
+</h3>
+
+</div>
+
+{% endblock %}

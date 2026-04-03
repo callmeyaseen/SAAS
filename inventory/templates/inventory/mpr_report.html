@@ -1,0 +1,121 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+</style>
+
+<div id="printArea" class="bg-white p-10 shadow rounded">
+
+<!-- HEADER -->
+<div class="text-center mb-8">
+    <h1 class="text-2xl font-bold">Textile ERP</h1>
+    <h2 class="text-lg font-semibold">Material Purchase Requisition</h2>
+</div>
+
+<!-- INFO ROW -->
+<div class="flex justify-between mb-6 text-sm">
+    <div><strong>MPR No:</strong> {{ mpr.mpr_no }}</div>
+    <div><strong>Date:</strong> {{ mpr.created_at|date:"M d, Y" }}</div>
+    <div><strong>Department:</strong> {{ mpr.department }}</div>
+</div>
+
+<!-- TABLE -->
+<table class="w-full border border-black text-sm">
+
+<thead>
+<tr class="bg-gray-200">
+<th class="border border-black p-2 text-left w-1/2">Item Description</th>
+<th class="border border-black p-2 text-center">Qty</th>
+<th class="border border-black p-2 text-center">Rate</th>
+<th class="border border-black p-2 text-right">Amount</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in mpr.items.all %}
+<tr>
+<td class="border border-black p-2">
+    {{ item.item.item_name }}
+</td>
+<td class="border border-black p-2 text-center">
+    {{ item.quantity }}
+</td>
+<td class="border border-black p-2 text-center">
+    {{ item.rate }}
+</td>
+<td class="border border-black p-2 text-right">
+    {{ item.amount }}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+<tfoot>
+<tr class="font-semibold bg-gray-100">
+<td colspan="3" class="border border-black p-2 text-right">
+Total
+</td>
+<td class="border border-black p-2 text-right">
+{{ total_amount }}
+</td>
+</tr>
+</tfoot>
+
+</table>
+
+<!-- SIGNATURE SECTION -->
+<div class="grid grid-cols-4 gap-12 mt-20 text-sm text-center">
+
+<div>
+    <div class="h-8"></div>
+    <hr class="border-black mb-1">
+    <p class="font-semibold">
+        {{ mpr.created_by.get_full_name|default:mpr.created_by.username }}
+    </p>
+    <p>Prepared By</p>
+</div>
+
+<div>
+    <div class="h-8"></div>
+    <hr class="border-black mb-1">
+    <p>Checked By</p>
+</div>
+
+<div>
+    <div class="h-8"></div>
+    <hr class="border-black mb-1">
+    <p>Approved By</p>
+</div>
+
+<div>
+    <div class="h-8"></div>
+    <hr class="border-black mb-1">
+    <p>Finance Approval</p>
+</div>
+
+</div>
+<!-- PRINT BUTTON -->
+<div class="text-right mt-10">
+<button onclick="window.print()"
+class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+Print
+</button>
+</div>
+
+</div>
+
+{% endblock %}

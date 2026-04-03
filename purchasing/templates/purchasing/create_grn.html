@@ -1,0 +1,143 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-6">Create GRN</h2>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+
+<div>
+<label>GRN No</label>
+<input type="text"
+value="{{ grn_no }}"
+readonly
+class="border p-2 w-full">
+</div>
+
+<div>
+<label>Purchase Order</label>
+
+<select name="po" id="poSelect" class="border p-2 w-full">
+
+<option value="">Select PO</option>
+
+{% for po in pos %}
+<option value="{{ po.id }}">
+{{ po.po_no }}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+<div>
+<label>Received Date</label>
+<input type="date"
+name="received_date"
+class="border p-2 w-full">
+</div>
+
+</div>
+
+<h3 class="font-semibold mb-2">Items</h3>
+
+<table class="w-full border border-gray-300">
+
+<thead class="bg-gray-200">
+<tr>
+<th class="border p-2">Yarn</th>
+<th class="border p-2">PO Qty</th>
+<th class="border p-2">Received Qty</th>
+</tr>
+</thead>
+
+<tbody id="itemsTable">
+</tbody>
+
+</table>
+
+<button
+type="submit"
+class="bg-blue-600 text-white px-6 py-2 mt-4 rounded">
+
+Save GRN
+
+</button>
+
+</form>
+
+</div>
+
+
+<script>
+
+const poSelect = document.getElementById("poSelect");
+const table = document.getElementById("itemsTable");
+
+poSelect.addEventListener("change", function(){
+
+    const poId = this.value;
+
+    if(!poId){
+        table.innerHTML = "";
+        return;
+    }
+
+    fetch(`/purchasing/get-po-items/${poId}/`)
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        table.innerHTML = "";
+
+        data.forEach(item => {
+
+            table.innerHTML += `
+            <tr>
+
+            <td class="border p-2">
+
+            ${item.yarn}
+
+            <input type="hidden"
+            name="item[]"
+            value="${item.id}">
+
+            </td>
+
+            <td class="border p-2">
+
+            ${item.qty}
+
+            <input type="hidden"
+            name="po_qty[]"
+            value="${item.qty}">
+
+            </td>
+
+            <td class="border p-2">
+
+            <input
+            type="number"
+            name="received_qty[]"
+            class="border p-1 w-full"
+            required>
+
+            </td>
+
+            </tr>
+            `;
+        });
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

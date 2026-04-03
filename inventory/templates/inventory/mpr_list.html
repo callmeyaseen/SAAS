@@ -1,0 +1,57 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-6">MPR List</h2>
+
+<table class="w-full border border-black text-sm">
+<thead class="bg-gray-200">
+<tr>
+<th class="border border-black p-2">MPR No</th>
+<th class="border border-black p-2">Date</th>
+<th class="border border-black p-2">Department</th>
+<th class="border border-black p-2">Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for mpr in mprs %}
+<tr>
+<td class="border border-black p-2">
+{{ mpr.mpr_no }}
+</td>
+
+<td class="border border-black p-2">
+{{ mpr.created_at|date:"M d, Y" }}
+</td>
+
+<td class="border border-black p-2">
+{{ mpr.department }}
+</td>
+
+<td class="border border-black p-2 text-center">
+<a href="{% url 'mpr_report' mpr.mpr_no %}"
+   class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
+View
+</a>
+</td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="4" class="text-center p-4">
+No MPR Records Found
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

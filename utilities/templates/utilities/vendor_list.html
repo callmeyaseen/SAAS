@@ -1,0 +1,38 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<h2 class="text-2xl font-bold mb-4">Vendor List</h2>
+
+<table class="w-full bg-white shadow rounded">
+
+<thead class="bg-gray-200">
+<tr>
+<th class="p-2 text-left">Code</th>
+<th class="p-2 text-left">Name</th>
+<th class="p-2 text-left">Phone</th>
+<th class="p-2 text-left">Email</th>
+<th class="p-2 text-left">Action</th>
+</tr>
+</thead>
+
+<tbody>
+{% for v in vendors %}
+<tr class="border-b">
+<td class="p-2">{{ v.vendor_code }}</td>
+<td class="p-2">{{ v.vendor_name }}</td>
+<td class="p-2">{{ v.phone }}</td>
+<td class="p-2">{{ v.email }}</td>
+<td class="p-2">
+<a href="/utilities/vendor-entry/?code={{ v.vendor_code }}"
+ class="text-blue-600 underline">
+Open
+</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+{% endblock %}

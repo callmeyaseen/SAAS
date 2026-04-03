@@ -1,0 +1,260 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 rounded shadow">
+
+<h2 class="text-xl font-bold mb-6">Material Purchase Requisition</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- FIND -->
+<div class="flex gap-2 mb-6">
+
+<input type="text"
+name="search_mpr_no"
+placeholder="Enter MPR No"
+class="border px-3 py-2 rounded"
+value="{{ mpr.mpr_no|default:'' }}">
+
+<button type="submit"
+name="find"
+class="bg-gray-600 text-white px-4 py-2 rounded">
+Find
+</button>
+
+</div>
+
+<!-- HEADER -->
+<div class="grid grid-cols-5 gap-4 mb-6">
+
+<div>
+<label>MPR No</label>
+<input type="text"
+name="mpr_no"
+value="{{ mpr.mpr_no|default:mpr_no }}"
+readonly
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Required Date</label>
+<input type="date"
+name="required_date"
+value="{{ mpr.required_date|default:today|date:'Y-m-d' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Request From</label>
+<input type="text"
+name="request_from"
+value="{{ mpr.request_from|default:'' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<div>
+<label>Department</label>
+<input type="text"
+name="department"
+value="{{ mpr.department|default:'' }}"
+class="w-full border rounded px-3 py-2">
+</div>
+
+<!-- VENDOR -->
+<div>
+<label>Vendor</label>
+
+<select name="vendor"
+class="w-full border rounded px-3 py-2">
+
+<option value="">Select Vendor</option>
+
+{% for v in vendors %}
+
+<option value="{{ v.id }}"
+{% if mpr.suggested_vendor.id == v.id %}selected{% endif %}>
+{{ v.vendor_name }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+</div>
+
+
+<!-- ITEMS -->
+<table class="w-full border mb-4" id="itemTable">
+
+<thead class="bg-gray-200">
+<tr>
+<th class="p-2 border">Yarn</th>
+<th class="p-2 border">Quantity</th>
+<th class="p-2 border">Rate</th>
+<th class="p-2 border">Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% if items %}
+
+{% for row in items %}
+
+<tr>
+
+<td class="p-2 border">
+<input list="yarnList"
+name="item[]"
+value="{{ row.item.item_name }}"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border">
+<input type="number"
+step="0.01"
+name="quantity[]"
+value="{{ row.quantity }}"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border">
+<input type="number"
+step="0.01"
+name="rate[]"
+value="{{ row.rate }}"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border text-center">
+<button type="button"
+onclick="removeRow(this)"
+class="bg-red-500 text-white px-3 py-1 rounded">
+Delete
+</button>
+</td>
+
+</tr>
+
+{% endfor %}
+
+{% else %}
+
+<tr>
+
+<td class="p-2 border">
+<input list="yarnList"
+name="item[]"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border">
+<input type="number"
+step="0.01"
+name="quantity[]"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border">
+<input type="number"
+step="0.01"
+name="rate[]"
+class="w-full border rounded px-2 py-1">
+</td>
+
+<td class="p-2 border text-center">
+<button type="button"
+onclick="removeRow(this)"
+class="bg-red-500 text-white px-3 py-1 rounded">
+Delete
+</button>
+</td>
+
+</tr>
+
+{% endif %}
+
+</tbody>
+
+</table>
+
+
+<!-- YARN LIST -->
+<datalist id="yarnList">
+{% for yarn in yarns %}
+<option value="{{ yarn.item_name }}">
+{% endfor %}
+</datalist>
+
+
+<button type="button"
+onclick="addRow()"
+class="bg-green-600 text-white px-4 py-2 rounded mb-4">
++ Add Row
+</button>
+
+
+{% if mpr %}
+
+<button type="submit"
+name="update"
+class="bg-green-600 text-white px-6 py-2 rounded">
+Update MPR
+</button>
+
+<a href="{% url 'mpr_report' mpr.mpr_no %}"
+class="bg-purple-600 text-white px-6 py-2 rounded ml-3">
+View
+</a>
+
+{% else %}
+
+<button type="submit"
+name="save"
+class="bg-blue-600 text-white px-6 py-2 rounded">
+Save MPR
+</button>
+
+{% endif %}
+
+</form>
+
+</div>
+
+
+<script>
+
+function addRow(){
+
+let table=document
+.getElementById("itemTable")
+.getElementsByTagName("tbody")[0]
+
+let newRow=table.rows[0].cloneNode(true)
+
+newRow.querySelectorAll("input").forEach(i=>i.value="")
+
+table.appendChild(newRow)
+
+}
+
+function removeRow(btn){
+
+let row=btn.closest("tr")
+
+let table=document
+.getElementById("itemTable")
+.getElementsByTagName("tbody")[0]
+
+if(table.rows.length>1){
+row.remove()
+}
+
+}
+
+</script>
+
+{% endblock %}

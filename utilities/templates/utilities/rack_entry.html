@@ -1,0 +1,36 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded max-w-2xl">
+
+<h2 class="text-xl font-bold mb-6">Rack Entry</h2>
+
+<form method="POST" class="grid grid-cols-2 gap-4">
+
+{% csrf_token %}
+
+<div>
+<label>Rack No</label>
+<input type="text" name="rack_no"
+class="border p-2 w-full" required>
+</div>
+
+<div>
+<label>Location</label>
+<input type="text" name="location"
+class="border p-2 w-full">
+</div>
+
+<div class="col-span-2">
+<button type="submit"
+class="bg-blue-600 text-white px-6 py-2 rounded">
+Save Rack
+</button>
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

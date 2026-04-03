@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+
+<title>Textile ERP</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100 flex">
+
+<!-- ================= SIDEBAR ================= -->
+<div class="w-64 bg-gray-800 text-white min-h-screen p-4">
+
+<h2 class="text-xl font-bold mb-6">Textile ERP</h2>
+
+<ul class="space-y-2">
+
+<!-- DASHBOARD -->
+<li>
+<a href="/" class="block px-3 py-2 rounded hover:bg-gray-700">
+Dashboard
+</a>
+</li>
+<li>
+
+<button
+onclick="toggleUtilities()"
+class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+Utilities
+<span id="utilitiesArrow">▼</span>
+
+</button>
+
+<ul id="utilitiesMenu" class="ml-4 mt-2 space-y-1 hidden">
+
+<li>
+<a href="/utilities/vendor-entry/" class="block px-3 py-2 rounded hover:bg-gray-700">
+Vendor Entry
+</a>
+</li>
+
+<li>
+<a href="{% url 'rack_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Rack Entry
+</a>
+</li>
+
+<li>
+<a href="{% url 'yarn_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Item Entry
+</a>
+</li>
+
+<li>
+<a href="{% url 'yarn_filter' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Yarn Audit
+</a>
+</li>
+
+<li>
+<a href="{% url 'rack_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Rack List
+</a>
+</li>
+
+<li>
+<a href="/utilities/vendor-list/" class="block px-3 py-2 rounded hover:bg-gray-700">
+Vendor List
+</a>
+</li>
+
+</ul>
+</li>
+<!-- ================= INVENTORY ================= -->
+<li>
+
+<button
+onclick="toggleInventory()"
+class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+Inventory
+<span id="inventoryArrow">▼</span>
+
+</button>
+
+<ul id="inventorySubmenu" class="ml-4 mt-2 space-y-1 hidden">
+
+<li>
+<a href="{% url 'mpr_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+MPR Entry
+</a>
+</li>
+
+<li>
+<a href="{% url 'mpr_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+MPR List
+</a>
+</li>
+</ul>
+</li>
+
+
+<!-- ================= PURCHASING ================= -->
+<li>
+
+<button
+onclick="togglePurchasing()"
+class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+Purchasing
+<span id="purchasingArrow">▼</span>
+
+</button>
+
+<ul id="purchasingSubmenu" class="ml-4 mt-2 space-y-1 hidden">
+
+<li>
+<a href="{% url 'po_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Purchase Orders
+</a>
+</li>
+
+<li>
+<a href="{% url 'create_po' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+Create PO
+</a>
+</li>
+
+{% if perms.purchasing.can_approve_po %}
+<li>
+<a href="{% url 'po_approval_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+PO Approvals
+</a>
+</li>
+<li>
+    <a href="/purchasing/create-grn/" class="block px-3 py-2 rounded hover:bg-gray-700">
+        Create GRN
+    </a>
+</li>
+<li>
+    <a href="/purchasing/grn-list/" class="block px-3 py-2 rounded hover:bg-gray-700">
+        GRN list
+    </a>
+</li>
+</ul>
+{% endif %}
+</li>
+
+<li>
+    <a href="{% url 'stock_list' %}" class="block px-4 py-2 hover:bg-gray-200">
+        Store
+    </a>
+</li>
+
+<!-- ================= SECURITY ================= -->
+{% if request.user.is_superuser %}
+<li>
+<a href="/accounts/create-user/" class="block px-3 py-2 rounded hover:bg-gray-700">
+Create User
+</a>
+</li>
+{% endif %}
+
+
+<!-- ================= LOGOUT ================= -->
+<li class="mt-6">
+<a href="{% url 'user_logout' %}" class="block px-3 py-2 rounded bg-red-600 hover:bg-red-700">
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="flex-1 p-6">
+
+<!-- SUCCESS / ERROR MESSAGES -->
+
+{% if messages %}
+{% for message in messages %}
+
+<div class="mb-4 p-4 rounded
+{% if message.tags == 'success' %}bg-green-500
+{% elif message.tags == 'error' %}bg-red-500
+{% else %}bg-blue-500{% endif %}
+text-white">
+
+{{ message }}
+
+</div>
+
+{% endfor %}
+{% endif %}
+
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+function toggleUtilities() {
+
+const menu = document.getElementById("utilitiesMenu")
+const arrow = document.getElementById("utilitiesArrow")
+
+menu.classList.toggle("hidden")
+
+arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
+
+}
+
+function toggleInventory() {
+
+const menu = document.getElementById("inventorySubmenu")
+const arrow = document.getElementById("inventoryArrow")
+
+menu.classList.toggle("hidden")
+
+arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
+
+}
+
+function togglePurchasing() {
+
+const menu = document.getElementById("purchasingSubmenu")
+const arrow = document.getElementById("purchasingArrow")
+
+menu.classList.toggle("hidden")
+
+arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
+
+}
+
+</script>
+</body>
+</html>

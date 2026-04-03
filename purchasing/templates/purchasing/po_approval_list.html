@@ -1,0 +1,68 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-4">PO Approval List</h2>
+
+<table class="w-full border">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">PO No</th>
+<th class="border p-2">Supplier</th>
+<th class="border p-2">Date</th>
+<th class="border p-2">Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for po in pending_pos %}
+
+<tr>
+
+<td class="border p-2">{{ po.po_no }}</td>
+<td class="border p-2">{{ po.supplier }}</td>
+<td class="border p-2">{{ po.date }}</td>
+
+<td class="border p-2 flex gap-2">
+
+<a
+href="{% url 'approve_po' po.id %}"
+class="bg-green-600 text-white px-3 py-1 rounded">
+
+Approve
+
+</a>
+
+<form
+method="POST"
+action="{% url 'reject_po' po.id %}">
+
+{% csrf_token %}
+
+<button
+class="bg-red-600 text-white px-3 py-1 rounded">
+
+Reject
+
+</button>
+
+</form>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

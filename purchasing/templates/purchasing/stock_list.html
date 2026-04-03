@@ -1,0 +1,48 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="bg-white p-6 shadow rounded">
+
+<h2 class="text-xl font-bold mb-6">Store Stock</h2>
+
+<table class="w-full border">
+
+<thead class="bg-gray-200">
+
+<tr>
+<th class="border p-2">Yarn</th>
+<th class="border p-2">Available Qty</th>
+<th class="border p-2">Last Updated</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for stock in stocks %}
+
+<tr>
+
+<td class="border p-2">
+{{ stock.item }}
+</td>
+
+<td class="border p-2">
+{{ stock.quantity }}
+</td>
+
+<td class="border p-2">
+{{ stock.updated_at }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}
