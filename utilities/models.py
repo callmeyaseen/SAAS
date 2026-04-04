@@ -27,7 +27,9 @@ class Rack(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     def __str__(self):
-        return self.rack_no
+        # return self.created_by.username + " - " + self.rack_no
+        user = self.created_by.username if self.created_by else "Unknown"
+        return f"{user} - {self.rack_no}"
 
 # ================= YARN =================
 class Yarn(AuditModel):
