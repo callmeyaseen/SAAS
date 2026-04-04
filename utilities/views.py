@@ -119,13 +119,15 @@ def rack_entry(request):
 
         rack_no = request.POST.get("rack_no")
         location = request.POST.get("location")
+        created_by = request.user
 
         if Rack.objects.filter(rack_no=rack_no).exists():
             messages.error(request, "Rack already exists")
         else:
             Rack.objects.create(
                 rack_no=rack_no,
-                location=location
+                location=location,
+                created_by=created_by
             )
             messages.success(request, "Rack Created Successfully")
 

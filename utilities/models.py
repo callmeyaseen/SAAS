@@ -1,5 +1,6 @@
 from django.db import models
 from core.models import AuditModel
+from django.contrib.auth.models import User
 def generate_vendor_code():
     last_vendor = Vendor.objects.order_by('id').last()
     if last_vendor:
@@ -23,6 +24,8 @@ class Rack(models.Model):
     rack_no = models.CharField(max_length=20)
     location = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return self.rack_no
 
