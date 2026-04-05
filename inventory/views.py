@@ -60,7 +60,8 @@ def mpr_entry(request):
         mpr = MPR.objects.create(
             mpr_no=mpr_no,
             required_date=request.POST.get("required_date"),
-            request_from=request.POST.get("request_from"),
+            # request_from=request.POST.get("request_from"),
+            request_from=request.user.username,
             department=request.POST.get("department"),
             suggested_vendor_id=request.POST.get("vendor"),
             created_by=request.user

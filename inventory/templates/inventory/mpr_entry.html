@@ -48,11 +48,10 @@ class="w-full border rounded px-3 py-2">
 <div>
 <label>Request From</label>
 <input type="text"
-name="request_from"
-value="{{ mpr.request_from|default:'' }}"
+value="{{ request.user.username }}"
+readonly
 class="w-full border rounded px-3 py-2">
 </div>
-
 <div>
 <label>Department</label>
 <input type="text"

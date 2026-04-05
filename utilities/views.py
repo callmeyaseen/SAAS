@@ -113,7 +113,8 @@ def vendor_list(request):
 # ================= Rack Entry View =================
 def rack_entry(request):
 
-    racks = Rack.objects.all().order_by("-id")
+    # racks = Rack.objects.all().order_by("-id")
+    racks = Rack.objects.select_related('created_by').all().order_by("-id")
 
     if request.method == "POST":
 
