@@ -8,4 +8,5 @@ urlpatterns = [
     path('rack-list/', views.rack_list, name='rack_list'),
     path("item-entry/", views.yarn_entry, name="yarn_entry"),
     path("yarn-audit/", views.yarn_filter, name="yarn_filter"),
+    path("department-entry/", views.department_entry, name="department_entry"),
 ]

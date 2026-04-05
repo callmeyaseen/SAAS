@@ -40,3 +40,20 @@ class Yarn(AuditModel):
     def __str__(self):
         return f"{self.item_name} ({self.yarn_code})"
 
+
+# ================= Department =================
+class Department(models.Model):
+
+    TYPE_CHOICES = [
+        ('Production', 'Production'),
+        ('Stock', 'Stock'),
+    ]
+
+    name = models.CharField(max_length=100)
+    department_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.department_type})"

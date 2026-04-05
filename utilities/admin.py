@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Vendor, Rack, Yarn
+from .models import Department, Vendor, Rack, Yarn
 
 
 @admin.register(Vendor)
@@ -18,3 +18,5 @@ class RackAdmin(admin.ModelAdmin):
 class YarnAdmin(admin.ModelAdmin):
     list_display = ('yarn_code', 'item_name', 'unit', 'shade', 'yarn_type')
     search_fields = ('yarn_code', 'item_name')
+    
+admin.site.register(Department)

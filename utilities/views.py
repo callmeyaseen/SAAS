@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
-from .models import Rack, Vendor, Yarn
+from .models import Department, Rack, Vendor, Yarn
 from security.utils import get_permission
 from django.contrib.auth.models import User
 @login_required(login_url='user_login')
@@ -325,3 +325,34 @@ def yarn_filter(request):
         "utilities/yarn_filter.html",
         {"users": users}
     )
+
+# ================= Department =================
+@login_required(login_url="user_login")
+def department_entry(request):
+
+    # SAVE
+    if request.method == "POST":
+
+        name = request.POST.get("name")
+        dept_type = request.POST.get("department_type")
+
+        if name and dept_type:
+
+            Department.objects.create(
+                name=name,
+                department_type=dept_type,
+                created_by=request.user
+            )
+
+            messages.success(request, "Department Created Successfully")
+            return redirect("department_entry")
+
+        else:
+            messages.error(request, "All fields are required")
+
+    # LIST
+    departments = Department.objects.all().order_by("-id")
+
+    return render(request, "utilities/department_entry.html", {
+        "departments": departments
+    })
