@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from utilities.models import Vendor
 from .models import  Yarn, MPR, MPRItem
+from utilities.models import Department
 
 # ================= MPR AUTO NUMBER =================
 def generate_mpr_no():
@@ -31,7 +32,8 @@ def mpr_entry(request):
 
     yarns = Yarn.objects.all()
     vendors = Vendor.objects.all()
-
+    departments = Department.objects.all()
+    
     mpr = None
     items = []
 
@@ -59,10 +61,11 @@ def mpr_entry(request):
 
         mpr = MPR.objects.create(
             mpr_no=mpr_no,
+            # departments=departments,
             required_date=request.POST.get("required_date"),
-            # request_from=request.POST.get("request_from"),
             request_from=request.user.username,
-            department=request.POST.get("department"),
+            # department=request.POST.get("department"),
+            department_id=request.POST.get("department"),
             suggested_vendor_id=request.POST.get("vendor"),
             created_by=request.user
         )
@@ -71,14 +74,16 @@ def mpr_entry(request):
         quantities = request.POST.getlist("quantity[]")
         rates = request.POST.getlist("rate[]")
 
-        for item_name, qty, rate in zip(items, quantities, rates):
+        for item_id, qty, rate in zip(items, quantities, rates):
 
-            if item_name and qty:
+            if item_id and qty:
 
                 qty = Decimal(qty)
                 rate = Decimal(rate) if rate else Decimal("0")
 
-                yarn = Yarn.objects.filter(item_name=item_name).first()
+                # yarn = Yarn.objects.filter(item_name=item_name).first()
+                yarn_id = item_id
+                yarn = Yarn.objects.filter(id=yarn_id).first()
 
                 if yarn:
 
@@ -105,8 +110,8 @@ def mpr_entry(request):
         if mpr:
 
             mpr.required_date = request.POST.get("required_date")
-            mpr.request_from = request.POST.get("request_from")
-            mpr.department = request.POST.get("department")
+            mpr.request_from = request.user.username 
+            mpr.department_id = request.POST.get("department")
 
             mpr.save()
 
@@ -117,14 +122,14 @@ def mpr_entry(request):
             quantities = request.POST.getlist("quantity[]")
             rates = request.POST.getlist("rate[]")
 
-            for item_name, qty, rate in zip(items, quantities, rates):
+            for item_id, qty, rate in zip(items, quantities, rates):
 
-                if item_name and qty:
+                if item_id and qty:
 
                     qty = Decimal(qty)
                     rate = Decimal(rate) if rate else Decimal("0")
 
-                    yarn = Yarn.objects.filter(item_name=item_name).first()
+                    yarn = Yarn.objects.filter(id=item_id).first()
 
                     if yarn:
 
@@ -153,6 +158,7 @@ def mpr_entry(request):
             "items": items,
             "yarns": yarns,
             "vendors": vendors, 
+            "departments": departments,
             "today": timezone.now().date()
         }
     )
