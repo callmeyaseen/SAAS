@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY SETTINGS
 SECRET_KEY = 'django-insecure-5n9)y(u3g%8i2h&zska##(7f-rzyqnmm)#b_e@ryazy#izd^vp'
-DEBUG = True  # Deployment ke baad isay False karein
+DEBUG = 'RENDER' not in os.environ # Deployment ke baad isay False karein
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -60,13 +60,28 @@ WSGI_APPLICATION = 'ERP.wsgi.application'
 
 # DATABASE CONFIGURATION
 # Agar Render par DATABASE_URL set hai to wo use hoga, warna local SQLite
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v',
-        conn_max_age=600
-    )
-}
-
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgres://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v',
+#         conn_max_age=600
+#     )
+# }
+if 'RENDER' in os.environ:
+    # Render (Online) settings
+    DATABASES = {
+        'default': dj_database_url.config(
+            default='postgres://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v',
+            conn_max_age=600
+        )
+    }
+else:
+    # Local Settings (SQLite use hoga)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
