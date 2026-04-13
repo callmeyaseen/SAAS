@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from accounts import views as account_views
+from dashboard import views as dashboard_views
 
 urlpatterns = [
 
@@ -11,6 +12,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # APPS
+    path('', dashboard_views.home, name='home'),
     path("dashboard/", include("dashboard.urls")),
     path("utilities/", include("utilities.urls")),
     path("accounts/", include("accounts.urls")),
