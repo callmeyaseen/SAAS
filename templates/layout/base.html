@@ -1,180 +1,193 @@
 <!doctype html>
 <html>
 <head>
-
 <title>Textile ERP</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/feather-icons"></script>
 
 </head>
 
 <body class="bg-gray-100 flex">
 
 <!-- ================= SIDEBAR ================= -->
-<div class="w-64 bg-gray-800 text-white min-h-screen p-4">
+<div class="w-64 bg-[#1e293b] text-white min-h-screen p-4 relative">
 
-<h2 class="text-xl font-bold mb-6">Textile ERP</h2>
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+<i data-feather="grid"></i> Textile ERP
+</h2>
 
 <ul class="space-y-2">
 
-<!-- DASHBOARD -->
-<!-- <li>
-<a href="/" class="block px-3 py-2 rounded hover:bg-gray-700">
-Dashboard
-</a>
-</li>
-<li> -->
+<!-- ================= UTILITIES ================= -->
+<li class="relative">
 
-<button
-onclick="toggleUtilities()"
+<button onclick="toggleMenu('utilities')" 
 class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
 
-Utilities
-<span id="utilitiesArrow">▼</span>
+<div class="flex items-center gap-2">
+<i data-feather="star"></i> Utilities
+</div>
 
+<i data-feather="chevron-right"></i>
 </button>
 
-<ul id="utilitiesMenu" class="ml-4 mt-2 space-y-1 hidden">
+<!-- LEVEL 1 -->
+<div id="utilitiesMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
 
-<li>
-<a href="/utilities/vendor-entry/" class="block px-3 py-2 rounded hover:bg-gray-700">
-Vendor Entry
-</a>
-</li>
+<!-- Vendors -->
+<div class="relative">
+<button onclick="toggleSub(event,'vendorsSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex items-center gap-2">
+<i data-feather="users"></i> Vendors
+</span>
+<i data-feather="chevron-right"></i>
+</button>
 
-<li>
-<a href="{% url 'rack_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-Rack Entry
+<div id="vendorsSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="/utilities/vendor-entry/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
 </a>
-</li>
+<a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> List
+</a>
+</div>
+</div>
 
-<li>
-<a href="{% url 'yarn_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-Item Entry
-</a>
-</li>
+<!-- RACK -->
+<div class="relative">
+<button onclick="toggleSub(event,'rackSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="database"></i> Racks
+</span>
+<i data-feather="chevron-right"></i>
+</button>
 
-<li>
-<a href="{% url 'yarn_filter' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-Yarn Audit
+<div id="rackSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="{% url 'rack_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
 </a>
-</li>
+<a href="{% url 'rack_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> List
+</a>
+</div>
+</div>
 
-<li>
-<a href="{% url 'rack_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-Rack List
-</a>
-</li>
+<!-- ITEMS -->
+<div class="relative">
+<button onclick="toggleSub(event,'itemSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="box"></i> Items / Yarn
+</span>
+<i data-feather="chevron-right"></i>
+</button>
 
-<li>
-<a href="/utilities/vendor-list/" class="block px-3 py-2 rounded hover:bg-gray-700">
-Vendor List
+<div id="itemSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="{% url 'yarn_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
 </a>
-</li>
-<li>
-    <a href="{% url 'department_entry' %}"
-       class="block px-4 py-2 hover:bg-gray-200 rounded">
-        Department Entry
-    </a>
-</li>
-</ul>
+<a href="{% url 'yarn_filter' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> List
+</a>
+</div>
+</div>
+
+<!-- DEPARTMENT -->
+<div class="relative">
+<button onclick="toggleSub(event,'deptSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="home"></i> Department
+</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="deptSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="{% url 'department_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Add
+</a>
+</div>
+</div>
+
+</div>
 </li>
 
 <!-- ================= INVENTORY ================= -->
 <li>
-
-<button
-onclick="toggleInventory()"
-class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
-
-Inventory
-<span id="inventoryArrow">▼</span>
-
+<button onclick="toggleMenu('inventory')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="layers"></i> Inventory
+</span>
+<i data-feather="chevron-right"></i>
 </button>
 
-<ul id="inventorySubmenu" class="ml-4 mt-2 space-y-1 hidden">
-
-<li>
-<a href="{% url 'mpr_entry' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-MPR Entry
-</a>
+<div id="inventoryMenu" class="hidden absolute left-full top-20 ml-2 w-56 bg-gray-900 p-2 rounded">
+<a href="{% url 'mpr_entry' %}" class="block px-3 py-2 hover:bg-gray-700">MPR Entry</a>
+<a href="{% url 'mpr_list' %}" class="block px-3 py-2 hover:bg-gray-700">MPR List</a>
+</div>
 </li>
-
-<li>
-<a href="{% url 'mpr_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
-MPR List
-</a>
-</li>
-</ul>
-</li>
-
 
 <!-- ================= PURCHASING ================= -->
 <li>
-
-<button
-onclick="togglePurchasing()"
-class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
-
-Purchasing
-<span id="purchasingArrow">▼</span>
-
+<button onclick="toggleMenu('purchasing')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="shopping-cart"></i> Purchasing
+</span>
+<i data-feather="chevron-right"></i>
 </button>
 
-<ul id="purchasingSubmenu" class="ml-4 mt-2 space-y-1 hidden">
+<div id="purchasingMenu" class="hidden absolute left-full top-32 ml-2 w-56 bg-gray-900 p-2 rounded">
 
-<li>
-<a href="{% url 'po_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+<a href="{% url 'po_list' %}" class="block px-3 py-2 hover:bg-gray-700">
 Purchase Orders
 </a>
-</li>
 
-<li>
-<a href="{% url 'create_po' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+<a href="{% url 'create_po' %}" class="block px-3 py-2 hover:bg-gray-700">
 Create PO
 </a>
-</li>
 
 {% if perms.purchasing.can_approve_po %}
-<li>
-<a href="{% url 'po_approval_list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">
+<a href="{% url 'po_approval_list' %}" class="block px-3 py-2 hover:bg-gray-700">
 PO Approvals
 </a>
-</li>
-<li>
-    <a href="/purchasing/create-grn/" class="block px-3 py-2 rounded hover:bg-gray-700">
-        Create GRN
-    </a>
-</li>
-<li>
-    <a href="/purchasing/grn-list/" class="block px-3 py-2 rounded hover:bg-gray-700">
-        GRN list
-    </a>
-</li>
-</ul>
+
+<a href="/purchasing/create-grn/" class="block px-3 py-2 hover:bg-gray-700">
+Create GRN
+</a>
+
+<a href="/purchasing/grn-list/" class="block px-3 py-2 hover:bg-gray-700">
+GRN List
+</a>
 {% endif %}
+
+</div>
 </li>
 
+<!-- STORE -->
 <li>
-    <a href="{% url 'stock_list' %}" class="block px-4 py-2 hover:bg-gray-200">
-        Store
-    </a>
+<a href="{% url 'stock_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="archive"></i> Store
+</a>
 </li>
 
-<!-- ================= SECURITY ================= -->
+<!-- CREATE USER -->
 {% if request.user.is_superuser %}
 <li>
-<a href="/accounts/create-user/" class="block px-3 py-2 rounded hover:bg-gray-700">
-Create User
+<a href="/accounts/create-user/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="user-plus"></i> Create User
 </a>
 </li>
 {% endif %}
 
-
-<!-- ================= LOGOUT ================= -->
+<!-- LOGOUT -->
 <li class="mt-6">
-<a href="{% url 'user_logout' %}" class="block px-3 py-2 rounded bg-red-600 hover:bg-red-700">
-Logout
+<a href="{% url 'user_logout' %}" class="flex gap-2 px-3 py-2 bg-red-600 rounded hover:bg-red-700">
+<i data-feather="log-out"></i> Logout
 </a>
 </li>
 
@@ -182,73 +195,39 @@ Logout
 
 </div>
 
-
-<!-- ================= MAIN CONTENT ================= -->
+<!-- MAIN -->
 <div class="flex-1 p-6">
-
-<!-- SUCCESS / ERROR MESSAGES -->
-
-{% if messages %}
-{% for message in messages %}
-
-<div class="mb-4 p-4 rounded
-{% if message.tags == 'success' %}bg-green-500
-{% elif message.tags == 'error' %}bg-red-500
-{% else %}bg-blue-500{% endif %}
-text-white">
-
-{{ message }}
-
+{% block content %}{% endblock %}
 </div>
 
-{% endfor %}
-{% endif %}
-
-
-{% block content %}
-
-{% endblock %}
-
-</div>
-
-
-<!-- ================= JAVASCRIPT ================= -->
-
+<!-- JS -->
 <script>
 
-function toggleUtilities() {
-
-const menu = document.getElementById("utilitiesMenu")
-const arrow = document.getElementById("utilitiesArrow")
-
-menu.classList.toggle("hidden")
-
-arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
-
+function closeAll(){
+document.querySelectorAll('[id$="Menu"],[id$="Sub"]').forEach(el=>{
+el.classList.add('hidden')
+})
 }
 
-function toggleInventory() {
-
-const menu = document.getElementById("inventorySubmenu")
-const arrow = document.getElementById("inventoryArrow")
-
-menu.classList.toggle("hidden")
-
-arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
-
+function toggleMenu(menu){
+event.stopPropagation()
+closeAll()
+document.getElementById(menu+'Menu').classList.toggle('hidden')
 }
 
-function togglePurchasing() {
-
-const menu = document.getElementById("purchasingSubmenu")
-const arrow = document.getElementById("purchasingArrow")
-
-menu.classList.toggle("hidden")
-
-arrow.innerHTML = menu.classList.contains("hidden") ? "▼" : "▲"
-
+function toggleSub(e,id){
+e.stopPropagation()
+document.querySelectorAll('[id$="Sub"]').forEach(el=>{
+if(el.id!==id) el.classList.add('hidden')
+})
+document.getElementById(id).classList.toggle('hidden')
 }
+
+document.addEventListener("click",closeAll)
+
+feather.replace()
 
 </script>
+
 </body>
 </html>
