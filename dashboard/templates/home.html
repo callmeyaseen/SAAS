@@ -2,27 +2,130 @@
 
 {% block content %}
 
-<div class="p-6">
+<div class="h-[calc(100vh-70px)] overflow-hidden flex flex-col gap-3 text-sm">
 
-<h1 class="text-2xl font-bold mb-4">Welcome to Textile ERP</h1>
+<!-- HEADER -->
+<div class="bg-gradient-to-r from-[#0f172a] to-[#1e3a8a] text-white rounded-2xl p-4 flex justify-between items-center shadow-lg">
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+        <h1 class="text-lg font-bold">Textile ERP</h1>
+        <p class="text-xs text-gray-300">System Dashboard</p>
+    </div>
 
-<!-- CARD -->
-<div class="bg-white p-4 rounded shadow">
-<h2 class="font-semibold">Vendors</h2>
-<p class="text-gray-500">Manage vendors</p>
+    <div class="text-xs text-right">
+        <p>
+            📧 
+            <a href="mailto:my1476662@gmail.com" class="underline hover:text-blue-300">
+                my1476662@gmail.com
+            </a>
+        </p>
+        <p>
+            📞 
+            <a href="tel:+923422736309" class="underline hover:text-blue-300">
+                0342-2736309
+            </a>
+        </p>
+    </div>
+
 </div>
 
-<div class="bg-white p-4 rounded shadow">
-<h2 class="font-semibold">Inventory</h2>
-<p class="text-gray-500">Track stock & MPR</p>
+<!-- STATUS -->
+<div class="bg-white/70 backdrop-blur-md rounded-xl p-2 shadow flex justify-between items-center text-xs border">
+
+    <div class="flex gap-4">
+        <p>🟢 Active</p>
+        <p>👤 {{ request.user.username }}</p>
+    </div>
+
+    <div class="text-gray-500">
+        {{ request.user.last_login }}
+    </div>
+
 </div>
 
-<div class="bg-white p-4 rounded shadow">
-<h2 class="font-semibold">Purchasing</h2>
-<p class="text-gray-500">Manage POs</p>
+<!-- MAIN -->
+<div class="grid grid-cols-2 gap-3 flex-1">
+
+    <!-- MODULES -->
+    <div class="bg-white rounded-xl p-3 shadow hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col justify-between">
+
+        <h2 class="font-semibold mb-1">Modules</h2>
+
+        <div class="grid grid-cols-2 gap-1 text-xs text-gray-600">
+            <p><span class="text-green-500">●</span> Vendors</p>
+            <p><span class="text-green-500">●</span> Inventory</p>
+            <p><span class="text-green-500">●</span> Racks</p>
+            <p><span class="text-green-500">●</span> Yarn</p>
+            <p><span class="text-green-500">●</span> Purchasing</p>
+            <p><span class="text-green-500">●</span> GRN</p>
+            <p><span class="text-green-500">●</span> Approvals</p>
+            <p><span class="text-green-500">●</span> Roles</p>
+        </div>
+
+    </div>
+
+    <!-- QUICK -->
+    <div class="bg-white rounded-xl p-3 shadow hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col justify-between">
+
+        <h2 class="font-semibold mb-1">Quick Actions</h2>
+
+        <div class="grid grid-cols-2 gap-2">
+
+            <a href="/utilities/vendor-entry/" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-1 text-center rounded-lg hover:scale-105 transition text-xs">Vendor</a>
+
+            <a href="{% url 'rack_entry' %}" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-1 text-center rounded-lg hover:scale-105 transition text-xs">Rack</a>
+
+            <a href="{% url 'yarn_entry' %}" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-1 text-center rounded-lg hover:scale-105 transition text-xs">Item</a>
+
+            <a href="{% url 'create_po' %}" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-1 text-center rounded-lg hover:scale-105 transition text-xs">PO</a>
+
+        </div>
+
+    </div>
+
 </div>
+
+<!-- ABOUT + SERVICES -->
+<div class="grid grid-cols-2 gap-3">
+
+    <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 shadow">
+        <h2 class="font-semibold mb-1">About</h2>
+        <p class="text-xs text-gray-600">
+            Muhammad Yaseen - Textile ERP Developer with 6+ years of industry 
+            experience in textile, sugar, bakery, and hoteling sectors.
+        </p>
+    </div>
+
+    <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl p-3 shadow">
+        <h2 class="font-semibold mb-1">Services</h2>
+        <ul class="text-xs text-gray-600 space-y-1">
+            <li>✔ ERP Systems</li>
+            <li>✔ Inventory Solutions</li>
+            <li>✔ Vendor Modules</li>
+            <li>✔ Django Apps</li>
+        </ul>
+    </div>
+
+</div>
+
+<!-- HIGHLIGHT -->
+<div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 text-white p-4 rounded-2xl shadow-lg flex justify-between items-center relative overflow-hidden">
+
+    <!-- Glow -->
+    <div class="absolute w-32 h-32 bg-white/10 rounded-full -top-10 -left-10"></div>
+
+    <div>
+        <h2 class="text-sm font-semibold">Why Choose This ERP?</h2>
+        <p class="text-xs opacity-90">
+            Built from real industry experience (6+ years across multiple sectors)
+        </p>
+    </div>
+
+    <div class="text-xs text-right space-y-1">
+        <p>✔ Fast</p>
+        <p>✔ Practical</p>
+        <p>✔ Reliable</p>
+    </div>
 
 </div>
 
