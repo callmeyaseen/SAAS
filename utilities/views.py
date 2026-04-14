@@ -1,11 +1,17 @@
+import re
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
-from .models import Department, Rack, Vendor, Yarn
+from .models import Department, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem
 from security.utils import get_permission
 from django.contrib.auth.models import User
+from datetime import date
+from django.db import IntegrityError
+from django.db.models import Q
 @login_required(login_url='user_login')
+
 def vendor_entry(request):
 
     vendor = None
@@ -355,4 +361,392 @@ def department_entry(request):
 
     return render(request, "utilities/department_entry.html", {
         "departments": departments
+    })
+
+
+
+# ================= AUTO VOUCHER FUNCTION =================
+def generate_voucher():
+    # last product get karo (latest entry)
+    last_product = Product.objects.order_by('-id').first()
+
+    if last_product and last_product.voucher_no:
+        # number extract karo (V-0001 → 1)
+        match = re.search(r'\d+', last_product.voucher_no)
+
+        if match:
+            last_number = int(match.group())
+            new_number = last_number + 1
+        else:
+            new_number = 1
+    else:
+        new_number = 1
+
+    # formatted voucher
+    return f"V-{new_number:04d}"
+
+
+@login_required(login_url="user_login")
+def product_entry(request):
+
+    departments = Department.objects.all()
+    product = None
+    voucher_auto = generate_voucher()
+
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+        voucher_no = request.POST.get("voucher_no")
+        product_name = request.POST.get("product_name")
+        department_id = request.POST.get("department")
+
+        # ================= SAVE =================
+        if action == "save":
+
+            if product_name and department_id:
+
+                # ✅ Duplicate check (case-insensitive)
+                if Product.objects.filter(product_name__iexact=product_name).exists():
+                    messages.error(request, "Product already exists!")
+                    return redirect("product_entry")
+
+                try:
+                    Product.objects.create(
+                        voucher_no=voucher_auto,
+                        product_name=product_name,
+                        department_id=department_id,
+                        created_by=request.user
+                    )
+
+                    messages.success(request, "Product Saved Successfully")
+                    return redirect("product_entry")
+
+                except IntegrityError:
+                    messages.error(request, "Duplicate product not allowed!")
+                    return redirect("product_entry")
+
+            else:
+                messages.error(request, "All fields are required")
+
+        # ================= FIND =================
+        elif action == "find":
+
+            if voucher_no:
+                try:
+                    product = Product.objects.get(voucher_no=voucher_no)
+                    messages.success(request, "Product Found")
+
+                except Product.DoesNotExist:
+                    messages.error(request, "No product found")
+
+            elif product_name:
+                product = Product.objects.filter(
+                    product_name__icontains=product_name
+                ).order_by('-id').first()
+
+                if product:
+                    messages.success(request, "Product Found")
+                else:
+                    messages.error(request, "No product found")
+
+            else:
+                messages.error(request, "Enter Voucher OR Product Name")
+
+        # ================= UPDATE =================
+        elif action == "update":
+
+            if voucher_no:
+
+                try:
+                    product = Product.objects.get(voucher_no=voucher_no)
+
+                    # ✅ Duplicate check (exclude self)
+                    if Product.objects.filter(
+                        product_name__iexact=product_name
+                    ).exclude(id=product.id).exists():
+                        messages.error(request, "Product name already exists!")
+                        return redirect("product_entry")
+
+                    product.product_name = product_name
+                    product.department_id = department_id
+                    product.save()
+
+                    messages.success(request, "Product Updated Successfully")
+                    return redirect("product_entry")
+
+                except Product.DoesNotExist:
+                    messages.error(request, "Product Not Found")
+
+            else:
+                messages.error(request, "Voucher required")
+
+        # ================= DELETE =================
+        elif action == "delete":
+
+            if voucher_no:
+                try:
+                    product = Product.objects.get(voucher_no=voucher_no)
+                    product.delete()
+
+                    messages.success(request, "Product Deleted Successfully")
+                    return redirect("product_entry")
+
+                except Product.DoesNotExist:
+                    messages.error(request, "Product Not Found")
+
+            else:
+                messages.error(request, "Voucher required")
+
+    return render(request, "utilities/product_entry.html", {
+        "departments": departments,
+        "product": product,
+        "today": date.today(),
+        "voucher_auto": voucher_auto
+    })
+@login_required(login_url="user_login")
+def product_list(request):
+
+    # filters
+    search = request.GET.get("search")  # search input
+    department_id = request.GET.get("department")
+
+    # base queryset
+    products = Product.objects.select_related("department", "created_by").order_by("-id")
+
+    # 🔍 SEARCH (voucher OR product name)
+    if search:
+        products = products.filter(
+            Q(voucher_no__icontains=search) |
+            Q(product_name__icontains=search)
+        )
+
+    # 🎯 DEPARTMENT FILTER
+    if department_id:
+        products = products.filter(department_id=department_id)
+
+    # dropdown ke liye departments
+    departments = Department.objects.all()
+
+    return render(request, "utilities/product_list.html", {
+        "products": products,
+        "departments": departments,
+        "search": search,
+        "selected_department": department_id
+    })
+    
+def product_view(request, voucher_no):
+
+    product = get_object_or_404(Product, voucher_no=voucher_no)
+
+    return render(request, "utilities/product_view.html", {
+        "product": product
+    })
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
+from datetime import date
+from .models import Recipe, RecipeItem, Product, Yarn, Department
+
+
+# ================= AUTO VOUCHER =================
+def generate_recipe_voucher():
+    last = Recipe.objects.order_by("-id").first()
+
+    if last and last.voucher_no:
+        try:
+            num = int(last.voucher_no.split("-")[1]) + 1
+        except:
+            num = 1
+    else:
+        num = 1
+
+    return f"RCP-{num:04d}"
+
+
+# ================= MAIN VIEW =================
+@login_required(login_url="user_login")
+def recipe_entry(request):
+
+    departments = Department.objects.all()
+    products = Product.objects.all()
+    yarns = Yarn.objects.all()
+
+    voucher_auto = generate_recipe_voucher()
+    recipe = None
+    recipe_items = []
+
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+        voucher_no = request.POST.get("voucher_no")
+        product_id = request.POST.get("finished_item")
+        department_id = request.POST.get("department")
+
+        items = request.POST.getlist("item_type[]")   # 🔥 NEW (product + yarn)
+        percentages = request.POST.getlist("percentage[]")
+
+        # ================= SAVE =================
+        if action == "save":
+
+            if not (product_id and department_id):
+                messages.error(request, "All fields required")
+                return redirect("recipe_entry")
+
+            if Recipe.objects.filter(finished_product_id=product_id).exists():
+                messages.error(request, "Recipe already exists for this product")
+                return redirect("recipe_entry")
+
+            total = sum([float(p) for p in percentages if p])
+
+            if total != 100:
+                messages.error(request, "Total must be exactly 100%")
+                return redirect("recipe_entry")
+
+            try:
+                recipe = Recipe.objects.create(
+                    voucher_no=voucher_auto,
+                    finished_product_id=product_id,
+                    department_id=department_id,
+                    created_by=request.user
+                )
+
+                used_items = set()
+
+                for item, p in zip(items, percentages):
+
+                    if not item:
+                        continue
+
+                    # ❌ duplicate block
+                    if item in used_items:
+                        messages.error(request, "Duplicate item not allowed")
+                        recipe.delete()
+                        return redirect("recipe_entry")
+
+                    used_items.add(item)
+
+                    if "product_" in item:
+                        pid = item.split("_")[1]
+
+                        RecipeItem.objects.create(
+                            recipe=recipe,
+                            product_id=pid,
+                            percentage=p
+                        )
+
+                    elif "yarn_" in item:
+                        yid = item.split("_")[1]
+
+                        RecipeItem.objects.create(
+                            recipe=recipe,
+                            yarn_id=yid,
+                            percentage=p
+                        )
+
+                messages.success(request, "Recipe Saved Successfully ✅")
+                return redirect("recipe_entry")
+
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+                return redirect("recipe_entry")
+
+        # ================= FIND =================
+        elif action == "find":
+
+            if voucher_no:
+                recipe = Recipe.objects.filter(voucher_no=voucher_no).first()
+
+            elif product_id:
+                recipe = Recipe.objects.filter(
+                    finished_product_id=product_id
+                ).first()
+
+            if recipe:
+                recipe_items = recipe.items.all()
+                messages.success(request, "Recipe Found")
+            else:
+                messages.error(request, "Recipe not found")
+
+        # ================= UPDATE =================
+        elif action == "update":
+
+            recipe = Recipe.objects.filter(voucher_no=voucher_no).first()
+
+            if not recipe:
+                messages.error(request, "Recipe not found")
+                return redirect("recipe_entry")
+
+            total = sum([float(p) for p in percentages if p])
+
+            if total != 100:
+                messages.error(request, "Total must be exactly 100%")
+                return redirect("recipe_entry")
+
+            # delete old items
+            recipe.items.all().delete()
+
+            used_items = set()
+
+            for item, p in zip(items, percentages):
+
+                if not item:
+                    continue
+
+                if item in used_items:
+                    messages.error(request, "Duplicate item not allowed")
+                    return redirect("recipe_entry")
+
+                used_items.add(item)
+
+                if "product_" in item:
+                    RecipeItem.objects.create(
+                        recipe=recipe,
+                        product_id=item.split("_")[1],
+                        percentage=p
+                    )
+
+                elif "yarn_" in item:
+                    RecipeItem.objects.create(
+                        recipe=recipe,
+                        yarn_id=item.split("_")[1],
+                        percentage=p
+                    )
+
+            messages.success(request, "Recipe Updated Successfully")
+            return redirect("recipe_entry")
+
+        # ================= DELETE =================
+        elif action == "delete":
+
+            recipe = Recipe.objects.filter(voucher_no=voucher_no).first()
+
+            if recipe:
+                recipe.delete()
+                messages.success(request, "Recipe Deleted Successfully")
+            else:
+                messages.error(request, "Recipe not found")
+
+            return redirect("recipe_entry")
+
+        # ================= VIEW =================
+        elif action == "view":
+
+            recipes = Recipe.objects.all().order_by("-id")
+
+            return render(request, "utilities/recipe_report.html", {
+                "recipes": recipes
+            })
+
+    return render(request, "utilities/recipe_entry.html", {
+        "departments": departments,
+        "products": products,
+        "yarns": yarns,
+        "voucher_auto": voucher_auto,
+        "today": date.today(),
+        "recipe": recipe,
+        "recipe_items": recipe_items
     })

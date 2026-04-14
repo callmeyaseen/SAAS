@@ -25,6 +25,7 @@
 </li>
 
 <!-- ================= UTILITIES ================= -->
+<!-- ================= UTILITIES ================= -->
 <li class="relative">
 
 <button onclick="toggleMenu('utilities')" 
@@ -80,6 +81,34 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </div>
 </div>
 
+<!-- PRODUCT -->
+<div class="relative">
+<button onclick="toggleSub(event,'productSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+
+<span class="flex gap-2 items-center">
+<i data-feather="package"></i> Product
+</span>
+
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="productSub" 
+class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+
+<a href="{% url 'product_entry' %}" 
+class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
+</a>
+
+<a href="{% url 'product_list' %}" 
+class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> Product List
+</a>
+
+</div>
+</div>
+
 <!-- ITEMS -->
 <div class="relative">
 <button onclick="toggleSub(event,'itemSub')" 
@@ -117,9 +146,38 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </div>
 </div>
 
+<!-- 🔥 RECIPE (NEW PROFESSIONAL ADD) -->
+<div class="relative">
+<button onclick="toggleSub(event,'recipeSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+
+<span class="flex gap-2 items-center">
+<i data-feather="layers"></i> Recipe
+</span>
+
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="recipeSub" 
+class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+
+<!-- Entry -->
+<a href="{% url 'recipe_entry' %}" 
+class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
+</a>
+
+<!-- List / Report -->
+<a href="{% url 'recipe_entry' %}?action=view" 
+class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> Recipe List
+</a>
+
+</div>
+</div>
+
 </div>
 </li>
-
 <!-- ================= INVENTORY ================= -->
 <li>
 <button onclick="toggleMenu('inventory')" 

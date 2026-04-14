@@ -9,4 +9,8 @@ urlpatterns = [
     path("item-entry/", views.yarn_entry, name="yarn_entry"),
     path("yarn-audit/", views.yarn_filter, name="yarn_filter"),
     path("department-entry/", views.department_entry, name="department_entry"),
+    path("product-entry/", views.product_entry, name="product_entry"),
+    path("product-list/", views.product_list, name="product_list"),
+    path('product/view/<str:voucher_no>/', views.product_view, name='product_view'),
+    path("recipe/", views.recipe_entry, name="recipe_entry"),
 ]

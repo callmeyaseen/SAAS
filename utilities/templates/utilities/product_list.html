@@ -1,0 +1,97 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+
+    <h1 class="text-2xl font-bold mb-6 text-gray-700 text-center">
+        Product List
+    </h1>
+
+    <!-- FILTERS -->
+    <form method="GET" class="flex flex-wrap gap-4 mb-6">
+
+        <input 
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search Voucher or Product"
+            class="p-2 border rounded w-64">
+
+        <select name="department" class="p-2 border rounded">
+            <option value="">All Departments</option>
+            {% for dept in departments %}
+                <option value="{{ dept.id }}"
+                    {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>
+                    {{ dept.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button class="bg-blue-500 text-white px-4 py-2 rounded">
+            Filter
+        </button>
+
+    </form>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+
+        <table class="min-w-full border border-gray-200">
+
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="p-2">#</th>
+                    <th class="p-2">Voucher</th>
+                    <th class="p-2">Product Name</th>
+                    <th class="p-2">Department</th>
+                    <th class="p-2">Created By</th>
+                    <th class="p-2">Created At</th>
+                    <th class="p-2">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for p in products %}
+                <tr class="text-center border-b hover:bg-gray-50">
+
+                    <td class="p-2">{{ forloop.counter }}</td>
+
+                    <td class="p-2 font-semibold text-blue-600">
+                        {{ p.voucher_no }}
+                    </td>
+
+                    <td class="p-2">{{ p.product_name }}</td>
+                    <td class="p-2">{{ p.department.name }}</td>
+                    <td class="p-2">{{ p.created_by.username }}</td>
+                    <td class="p-2">{{ p.created_at|date:"d M Y H:i" }}</td>
+
+                    <td class="p-2 flex gap-2 justify-center">
+                        <a href="{% url 'product_entry' %}?voucher={{ p.voucher_no }}"
+                           class="bg-yellow-500 text-white px-2 py-1 rounded">
+                            Edit
+                        </a>
+
+                        <a href="{% url 'product_entry' %}?delete={{ p.voucher_no }}"
+                           class="bg-red-500 text-white px-2 py-1 rounded">
+                            Delete
+                        </a>
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="p-4 text-center text-gray-500">
+                        No Products Found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

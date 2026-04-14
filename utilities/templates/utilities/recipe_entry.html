@@ -1,0 +1,300 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="p-6">
+
+    <!-- ================= CARD ================= -->
+    <div class="bg-white p-6 rounded-lg shadow">
+
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-700">Recipe / Product Profile</h1>
+            <input type="date" value="{{ today }}" class="border px-3 py-2 rounded-lg">
+        </div>
+
+        <!-- MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-3 p-3 rounded text-white 
+                    {% if message.tags == 'error' %} bg-red-500
+                    {% else %} bg-green-500 {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- TOP -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+                <!-- Voucher -->
+                <div>
+                    <label class="text-sm">Voucher</label>
+                    <input type="text" name="voucher_no"
+                        value="{{ recipe.voucher_no|default:voucher_auto }}"
+                        class="w-full border px-3 py-2 rounded-lg bg-gray-100">
+                </div>
+
+                <!-- Finished Product (MAIN FIND FIELD) -->
+                <div>
+                    <label class="text-sm">Finished Item</label>
+                    <select name="finished_item"
+                        class="w-full border px-3 py-2 rounded-lg">
+
+                        <option value="">Select Product</option>
+
+                        {% for p in products %}
+                        <option value="{{ p.id }}"
+                            {% if recipe and recipe.finished_product.id == p.id %}selected{% endif %}>
+                            {{ p.product_name }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- Department -->
+                <div>
+                    <label class="text-sm">Department</label>
+                    <select name="department"
+                        class="w-full border px-3 py-2 rounded-lg">
+
+                        <option value="">Select Department</option>
+
+                        {% for d in departments %}
+                        <option value="{{ d.id }}"
+                            {% if recipe and recipe.department.id == d.id %}selected{% endif %}>
+                            {{ d.name }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- ================= TABLE ================= -->
+            <div class="overflow-x-auto mb-4">
+                <table class="w-full border text-sm">
+
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="p-3 border">#</th>
+                            <th class="p-3 border">Required Item</th>
+                            <th class="p-3 border">%</th>
+                            <th class="p-3 border text-center">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tableBody">
+
+                        {% if recipe_items %}
+                            {% for i in recipe_items %}
+                            <tr>
+                                <td class="p-2 border text-center">{{ forloop.counter }}</td>
+
+                                <td class="p-2 border">
+                                    <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+
+                                        <option value="">Select Item</option>
+
+                                        <optgroup label="Products">
+                                            {% for p in products %}
+                                                <option value="product_{{ p.id }}"
+                                                {% if i.product and i.product.id == p.id %}selected{% endif %}>
+                                                {{ p.product_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+
+                                        <optgroup label="Yarns">
+                                            {% for y in yarns %}
+                                                <option value="yarn_{{ y.id }}"
+                                                {% if i.yarn and i.yarn.id == y.id %}selected{% endif %}>
+                                                {{ y.item_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </optgroup>
+
+                                    </select>
+                                </td>
+
+                                <td class="p-2 border">
+                                    <input type="number" name="percentage[]"
+                                        value="{{ i.percentage }}"
+                                        oninput="calculateTotal()"
+                                        class="w-full px-2 py-1 border rounded text-right">
+                                </td>
+
+                                <td class="p-2 border text-center">
+                                    <button type="button"
+                                        onclick="removeRow(this)"
+                                        class="text-red-500">Remove</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+
+                        <!-- DEFAULT ROW -->
+                        <tr>
+                            <td class="p-2 border text-center">1</td>
+
+                            <td class="p-2 border">
+                                <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+
+                                    <option value="">Select Item</option>
+
+                                    <optgroup label="Products">
+                                        {% for p in products %}
+                                            <option value="product_{{ p.id }}">{{ p.product_name }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+
+                                    <optgroup label="Yarns">
+                                        {% for y in yarns %}
+                                            <option value="yarn_{{ y.id }}">{{ y.item_name }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+
+                                </select>
+                            </td>
+
+                            <td class="p-2 border">
+                                <input type="number" name="percentage[]"
+                                    oninput="calculateTotal()"
+                                    class="w-full px-2 py-1 border rounded text-right">
+                            </td>
+
+                            <td class="p-2 border text-center">
+                                <button type="button"
+                                    onclick="removeRow(this)"
+                                    class="text-red-500">Remove</button>
+                            </td>
+                        </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="text-right p-2 font-semibold">Total</td>
+                            <td id="total" class="text-blue-600 font-bold text-right p-2">0%</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+
+                </table>
+            </div>
+
+            <!-- ADD -->
+            <button type="button" onclick="addRow()"
+                class="bg-indigo-500 text-white px-4 py-2 rounded mb-4">
+                + Add Item
+            </button>
+
+            <!-- ACTIONS -->
+            <div class="flex gap-3 justify-end">
+
+                <button name="action" value="save"
+                    class="bg-green-600 text-white px-5 py-2 rounded">
+                    Save
+                </button>
+
+                <button name="action" value="update"
+                    class="bg-yellow-500 text-white px-5 py-2 rounded">
+                    Update
+                </button>
+
+                <button name="action" value="delete"
+                    class="bg-red-600 text-white px-5 py-2 rounded">
+                    Delete
+                </button>
+
+                <button name="action" value="view"
+                    class="bg-blue-600 text-white px-5 py-2 rounded">
+                    View
+                </button>
+
+                <!-- 🔥 FIND (Product based) -->
+                <button name="action" value="find"
+                    class="bg-gray-700 text-white px-5 py-2 rounded">
+                    Find
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+
+function addRow() {
+
+    let table = document.getElementById("tableBody");
+    let rowCount = table.rows.length + 1;
+
+    let row = `
+    <tr>
+        <td class="p-2 border text-center">${rowCount}</td>
+
+        <td class="p-2 border">
+            <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+
+                <option value="">Select Item</option>
+
+                <optgroup label="Products">
+                    {% for p in products %}
+                        <option value="product_{{ p.id }}">{{ p.product_name }}</option>
+                    {% endfor %}
+                </optgroup>
+
+                <optgroup label="Yarns">
+                    {% for y in yarns %}
+                        <option value="yarn_{{ y.id }}">{{ y.item_name }}</option>
+                    {% endfor %}
+                </optgroup>
+
+            </select>
+        </td>
+
+        <td class="p-2 border">
+            <input type="number" name="percentage[]" oninput="calculateTotal()"
+                class="w-full px-2 py-1 border rounded text-right">
+        </td>
+
+        <td class="p-2 border text-center">
+            <button type="button" onclick="removeRow(this)" class="text-red-500">Remove</button>
+        </td>
+    </tr>
+    `;
+
+    table.insertAdjacentHTML("beforeend", row);
+}
+
+function removeRow(btn) {
+    btn.closest("tr").remove();
+    calculateTotal();
+}
+
+function calculateTotal() {
+    let inputs = document.querySelectorAll('input[name="percentage[]"]');
+    let total = 0;
+
+    inputs.forEach(i => {
+        total += parseFloat(i.value) || 0;
+    });
+
+    document.getElementById("total").innerText = total + "%";
+}
+
+window.onload = calculateTotal;
+
+</script>
+
+{% endblock %}

@@ -57,3 +57,55 @@ class Department(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.department_type})"
+# Product Model
+class Product(models.Model):
+
+    # voucher number store karega
+    voucher_no = models.CharField(max_length=50)
+
+    # product name
+    product_name = models.CharField(max_length=200, unique=True)
+
+    # department foreign key (relation)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE)
+
+    # kis user ne create kiya
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    # created time
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.product_name
+    
+    
+# ================= RECIPE MASTER =================
+class Recipe(models.Model):
+    voucher_no = models.CharField(max_length=50, unique=True)
+
+    finished_product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE)
+
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.voucher_no} - {self.finished_product}"
+
+
+# ================= RECIPE ITEMS =================
+class RecipeItem(models.Model):
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="items")
+    yarn = models.ForeignKey("Yarn", on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey("Product", on_delete=models.CASCADE, null=True, blank=True)
+    percentage = models.FloatField()
+
+    class Meta:
+        # ❌ duplicate yarn in same recipe block
+        unique_together = ('recipe', 'yarn')
+
+    def __str__(self):
+        if self.yarn:
+            return f"{self.yarn} ({self.percentage}%)"
+        if self.product:
+            return f"{self.product} ({self.percentage}%)"

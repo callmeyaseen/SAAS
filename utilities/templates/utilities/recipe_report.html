@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @media print {
+            button { display: none; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+<div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-6 border-b pb-3">
+        <h2 class="text-2xl font-bold text-gray-700">Recipe Report</h2>
+        <button onclick="window.print()" 
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Print
+        </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+        <table class="w-full border text-sm">
+
+            <thead class="bg-gray-200 text-gray-700">
+                <tr>
+                    <th class="p-3 border">Voucher</th>
+                    <th class="p-3 border">Product</th>
+                    <th class="p-3 border">Department</th>
+                    <th class="p-3 border">Created By</th>
+                    <th class="p-3 border">Details</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for r in recipes %}
+                <tr class="hover:bg-gray-50">
+
+                    <td class="p-3 border font-semibold text-blue-600">
+                        {{ r.voucher_no }}
+                    </td>
+
+                    <td class="p-3 border">
+                        {{ r.finished_product }}
+                    </td>
+
+                    <td class="p-3 border">
+                        {{ r.department }}
+                    </td>
+
+                    <td class="p-3 border text-gray-600">
+                        {{ r.created_by }}
+                    </td>
+
+                    <td class="p-3 border">
+                        <div class="space-y-1">
+                            {% for i in r.items.all %}
+                                <div class="flex justify-between bg-gray-50 px-2 py-1 rounded">
+                                    <span>{{ i.yarn }}</span>
+                                    <span class="text-blue-600 font-semibold">
+                                        {{ i.percentage }}%
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </td>
+
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center p-4 text-gray-500">
+                        No Recipes Found
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
