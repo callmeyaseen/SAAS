@@ -1,6 +1,7 @@
-from django.db import models
+from django.db import models   
 from core.models import AuditModel
 from django.contrib.auth.models import User
+from django.utils.timezone import now
 def generate_vendor_code():
     last_vendor = Vendor.objects.order_by('id').last()
     if last_vendor:
@@ -17,30 +18,6 @@ class Vendor(models.Model):
     def __str__(self):
         return self.vendor_name
     
-# ================= Racl Model =====================
-
-# ✅ RACK ENTRY (FORM)
-class Rack(models.Model):
-    rack_no = models.CharField(max_length=20)
-    location = models.CharField(max_length=50, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    def __str__(self):
-        user = self.created_by.username if self.created_by else "Unknown"
-        return f"{user} - {self.rack_no}"
-
-# ================= YARN =================
-class Yarn(AuditModel):
-    yarn_code = models.CharField(max_length=20, unique=True)
-    item_name = models.CharField(max_length=200)
-    unit = models.CharField(max_length=50)
-    shade = models.CharField(max_length=100, blank=True)
-    yarn_type = models.CharField(max_length=100, blank=True)
-    def __str__(self):
-        return f"{self.item_name} ({self.yarn_code})"
-
-
 # ================= Department =================
 class Department(models.Model):
 
@@ -57,6 +34,37 @@ class Department(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.department_type})"
+    
+# ================= Racl Model =====================
+
+class Rack(models.Model):
+    rack_no = models.CharField(max_length=20)
+    # department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE , null=True, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    date = models.DateField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        unique_together = ['rack_no', 'department']   # 🔥 DUPLICATE CONTROL
+
+    def __str__(self):
+        return f"{self.department} - {self.rack_no}"
+# ================= YARN =================
+class Yarn(AuditModel):
+    yarn_code = models.CharField(max_length=20, unique=True)
+    item_name = models.CharField(max_length=200)
+    unit = models.CharField(max_length=50)
+    shade = models.CharField(max_length=100, blank=True)
+    yarn_type = models.CharField(max_length=100, blank=True)
+    def __str__(self):
+        return f"{self.item_name} ({self.yarn_code})"
+
+
+
 # Product Model
 class Product(models.Model):
 

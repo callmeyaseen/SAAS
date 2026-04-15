@@ -22,23 +22,27 @@ class="border p-2 w-full">
 <label>Purchase Order</label>
 
 <select name="po" id="poSelect" class="border p-2 w-full">
-
 <option value="">Select PO</option>
-
 {% for po in pos %}
-<option value="{{ po.id }}">
-{{ po.po_no }}
-</option>
+<option value="{{ po.id }}">{{ po.po_no }}</option>
 {% endfor %}
-
 </select>
 </div>
 
 <div>
 <label>Received Date</label>
-<input type="date"
-name="received_date"
-class="border p-2 w-full">
+<input type="date" name="received_date" class="border p-2 w-full">
+</div>
+
+<!-- 🔥 NEW FIELDS -->
+<div>
+<label>Vehicle No</label>
+<input type="text" name="vehicle_no" class="border p-2 w-full">
+</div>
+
+<div>
+<label>Driver Name</label>
+<input type="text" name="driver_name" class="border p-2 w-full">
 </div>
 
 </div>
@@ -52,26 +56,23 @@ class="border p-2 w-full">
 <th class="border p-2">Yarn</th>
 <th class="border p-2">PO Qty</th>
 <th class="border p-2">Received Qty</th>
+<th class="border p-2">Rate</th>        <!-- 🔥 NEW -->
+<th class="border p-2">Rack</th>        <!-- 🔥 NEW -->
 </tr>
 </thead>
 
-<tbody id="itemsTable">
-</tbody>
+<tbody id="itemsTable"></tbody>
 
 </table>
 
-<button
-type="submit"
+<button type="submit"
 class="bg-blue-600 text-white px-6 py-2 mt-4 rounded">
-
 Save GRN
-
 </button>
 
 </form>
 
 </div>
-
 
 <script>
 
@@ -88,9 +89,7 @@ poSelect.addEventListener("change", function(){
     }
 
     fetch(`/purchasing/get-po-items/${poId}/`)
-
     .then(response => response.json())
-
     .then(data => {
 
         table.innerHTML = "";
@@ -101,33 +100,32 @@ poSelect.addEventListener("change", function(){
             <tr>
 
             <td class="border p-2">
-
-            ${item.yarn}
-
-            <input type="hidden"
-            name="item[]"
-            value="${item.id}">
-
+                ${item.yarn}
+                <input type="hidden" name="item[]" value="${item.id}">
             </td>
 
             <td class="border p-2">
-
-            ${item.qty}
-
-            <input type="hidden"
-            name="po_qty[]"
-            value="${item.qty}">
-
+                ${item.qty}
+                <input type="hidden" name="po_qty[]" value="${item.qty}">
             </td>
 
             <td class="border p-2">
+                <input type="number" name="received_qty[]" class="border p-1 w-full" required>
+            </td>
 
-            <input
-            type="number"
-            name="received_qty[]"
-            class="border p-1 w-full"
-            required>
+            <!-- 🔥 RATE -->
+            <td class="border p-2">
+                <input type="number" name="rate[]" class="border p-1 w-full" required>
+            </td>
 
+            <!-- 🔥 RACK DROPDOWN -->
+            <td class="border p-2">
+                <select name="rack[]" class="border p-1 w-full" required>
+                    <option value="">Select Rack</option>
+                    {% for rack in racks %}
+                        <option value="{{ rack.id }}">{{ rack.rack_no }}</option>
+                    {% endfor %}
+                </select>
             </td>
 
             </tr>

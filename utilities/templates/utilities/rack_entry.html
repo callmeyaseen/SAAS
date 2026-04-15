@@ -1,36 +1,68 @@
 {% extends "layout/base.html" %}
-
 {% block content %}
 
-<div class="bg-white p-6 shadow rounded max-w-2xl">
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow">
 
-<h2 class="text-xl font-bold mb-6">Rack Entry</h2>
+    <h2 class="text-2xl font-bold mb-6">Rack Entry</h2>
 
-<form method="POST" class="grid grid-cols-2 gap-4">
+    <form method="POST" class="grid grid-cols-4 gap-4">
+        {% csrf_token %}
 
-{% csrf_token %}
+        <div>
+            <label class="block text-sm font-semibold mb-1">Rack No</label>
+            <input type="text" name="rack_no" required class="border p-2 w-full">
+        </div>
 
-<div>
-<label>Rack No</label>
-<input type="text" name="rack_no"
-class="border p-2 w-full" required>
+        <div>
+    <label class="block text-sm font-semibold mb-1">Department</label>
+
+    <select name="department" class="border p-2 w-full" required>
+        <option value="">Select Department</option>
+
+        {% for dept in departments %}
+            <option value="{{ dept.id }}">{{ dept.name }}</option>
+        {% endfor %}
+
+    </select>
 </div>
 
-<div>
-<label>Location</label>
-<input type="text" name="location"
-class="border p-2 w-full">
-</div>
+        <div class="col-span-2">
+            <label class="block text-sm font-semibold mb-1">Location</label>
+            <input type="text" name="location" class="border p-2 w-full">
+        </div>
 
-<div class="col-span-2">
-<button type="submit"
-class="bg-blue-600 text-white px-6 py-2 rounded">
-Save Rack
-</button>
-</div>
+        <div class="col-span-4 flex gap-3 mt-4">
+            <button type="submit"
+                class="bg-blue-600 text-white px-6 py-2 rounded hover:scale-105 transition">
+                Save
+            </button>
 
-</form>
+            <button type="reset"
+                class="bg-gray-500 text-white px-6 py-2 rounded">
+                Clear
+            </button>
+
+            <a href="{% url 'rack_list' %}"
+                class="bg-black text-white px-6 py-2 rounded">
+                View List
+            </a>
+        </div>
+
+    </form>
 
 </div>
+{% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="p-3 rounded text-white 
+                {% if message.tags == 'success' %} bg-green-500 
+                {% elif message.tags == 'error' %} bg-red-500 
+                {% else %} bg-blue-500 {% endif %}">
+                
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
 {% endblock %}

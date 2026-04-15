@@ -8,23 +8,25 @@
 <table class="w-full border">
 
 <thead class="bg-gray-200">
-
 <tr>
 <th class="border p-2">Yarn</th>
+<th class="border p-2">Rack</th>   <!-- 🔥 NEW -->
 <th class="border p-2">Available Qty</th>
 <th class="border p-2">Last Updated</th>
 </tr>
-
 </thead>
 
 <tbody>
 
 {% for stock in stocks %}
-
 <tr>
 
 <td class="border p-2">
 {{ stock.item }}
+</td>
+
+<td class="border p-2 text-blue-600 font-semibold">
+{{ stock.rack }}   <!-- 🔥 NEW -->
 </td>
 
 <td class="border p-2">
@@ -36,7 +38,6 @@
 </td>
 
 </tr>
-
 {% endfor %}
 
 </tbody>

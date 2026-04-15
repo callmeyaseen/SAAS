@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from inventory.models import Yarn
-from utilities.models import Vendor
+from utilities.models import Rack, Vendor
 
 
 # ================= PURCHASE ORDER =================
@@ -61,6 +61,8 @@ class GRN(models.Model):
     grn_no = models.CharField(max_length=20, unique=True)
     po = models.ForeignKey("PurchaseOrder",on_delete=models.CASCADE)
     supplier = models.ForeignKey(Vendor,on_delete=models.CASCADE)
+    vehicle_no = models.CharField(max_length=50, blank=True)
+    driver_name = models.CharField(max_length=100, blank=True)
     received_date = models.DateField()
     received_by = models.ForeignKey(User,on_delete=models.SET_NULL,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,6 +74,8 @@ class GRNItem(models.Model):
     item = models.ForeignKey(Yarn,on_delete=models.CASCADE)
     po_qty = models.DecimalField(max_digits=10,decimal_places=2)
     received_qty = models.DecimalField(max_digits=10,decimal_places=2)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True)
     remarks = models.CharField(max_length=200,blank=True)
     
 # ================= Inventory Model =================

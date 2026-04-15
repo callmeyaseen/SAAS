@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from inventory.models import MPR
-from utilities.models import Vendor
+from utilities.models import Vendor , Rack
 from .models import GRN, GRNItem, PurchaseOrder, PurchaseOrderItem, Stock
 
 
@@ -262,6 +262,7 @@ def generate_grn_no():
 def create_grn(request):
 
     pos = PurchaseOrder.objects.filter(status="Approved")
+    racks = Rack.objects.all()   # 🔥 NEW
     new_grn_no = generate_grn_no()
 
     if request.method == "POST":
@@ -274,14 +275,18 @@ def create_grn(request):
             po=po,
             supplier=po.supplier,
             received_date=request.POST.get("received_date"),
+            vehicle_no=request.POST.get("vehicle_no"),   # 🔥 NEW
+            driver_name=request.POST.get("driver_name"), # 🔥 NEW
             received_by=request.user
         )
 
         items = request.POST.getlist("item[]")
         po_qty = request.POST.getlist("po_qty[]")
         rec_qty = request.POST.getlist("received_qty[]")
+        rates = request.POST.getlist("rate[]")   # 🔥 NEW
+        racks_selected = request.POST.getlist("rack[]")  # 🔥 NEW
 
-        for item, pqty, rqty in zip(items, po_qty, rec_qty):
+        for item, pqty, rqty, rate, rack_id in zip(items, po_qty, rec_qty, rates, racks_selected):
 
             po_item = PurchaseOrderItem.objects.get(id=item)
 
@@ -289,10 +294,16 @@ def create_grn(request):
                 grn=grn,
                 item=po_item.item,
                 po_qty=pqty,
-                received_qty=rqty
+                received_qty=rqty,
+                rate=rate,
+                rack_id=rack_id   # 🔥 FK shortcut
             )
 
-            stock, created = Stock.objects.get_or_create(item=po_item.item)
+            # 🔥 STOCK UPDATE
+            stock, created = Stock.objects.get_or_create(
+                item=po_item.item,
+                rack_id=rack_id   # 🔥 yahi game changer hai
+                )
             stock.quantity += float(rqty)
             stock.save()
 
@@ -301,10 +312,9 @@ def create_grn(request):
 
     return render(request, "purchasing/create_grn.html", {
         "pos": pos,
+        "racks": racks,   # 🔥 SEND
         "grn_no": new_grn_no
     })
-
-
 # ================= GET PO ITEMS =================
 @login_required
 def get_po_items(request, po_id):
@@ -322,12 +332,30 @@ def get_po_items(request, po_id):
 
     return JsonResponse(data, safe=False)
 
+@login_required
+def grn_detail(request, pk):
+    grn = GRN.objects.select_related("po", "supplier").get(id=pk)
+    items = GRNItem.objects.filter(grn=grn)
 
+    return render(request, "purchasing/grn_detail.html", {
+        "grn": grn,
+        "items": items
+    })
+@login_required
+def grn_delete(request, pk):
+    grn = GRN.objects.get(id=pk)
+
+    if request.method == "POST":
+        grn.delete()
+        messages.success(request, "GRN Deleted Successfully")
+        return redirect("grn_list")
+
+    return redirect("grn_list")
 # ================= GRN LIST =================
 @login_required
 def grn_list(request):
 
-    grns = GRN.objects.all().order_by("-id")
+    grns = GRN.objects.select_related("po", "supplier").order_by("-id")
 
     return render(request, "purchasing/grn_list.html", {"grns": grns})
 

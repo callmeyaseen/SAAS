@@ -1,0 +1,50 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto bg-white p-6 shadow rounded">
+
+    <!-- Header -->
+    <div class="flex justify-between mb-4">
+        <h2 class="text-2xl font-bold">GRN Detail</h2>
+        <a href="{% url 'grn_list' %}" class="bg-gray-600 text-white px-4 py-2 rounded">
+            Back
+        </a>
+    </div>
+
+    <!-- GRN Info -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <p><strong>GRN No:</strong> {{ grn.grn_no }}</p>
+        <p><strong>PO:</strong> {{ grn.po.po_no }}</p>
+        <p><strong>Vendor:</strong> {{ grn.supplier }}</p>
+        <p><strong>Date:</strong> {{ grn.received_date }}</p>
+        <p><strong>Vehicle:</strong> {{ grn.vehicle_no }}</p>
+        <p><strong>Driver:</strong> {{ grn.driver_name }}</p>
+    </div>
+
+    <!-- Items Table -->
+    <table class="w-full border">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="border p-2">Item</th>
+                <th class="border p-2">PO Qty</th>
+                <th class="border p-2">Received Qty</th>
+                <th class="border p-2">Rate</th>
+                <th class="border p-2">Rack</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td class="border p-2">{{ item.item }}</td>
+                <td class="border p-2">{{ item.po_qty }}</td>
+                <td class="border p-2">{{ item.received_qty }}</td>
+                <td class="border p-2">{{ item.rate }}</td>
+                <td class="border p-2">{{ item.rack }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

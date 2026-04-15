@@ -14,4 +14,6 @@ urlpatterns = [
     path("create-grn/", views.create_grn, name="create_grn"),
     path("grn-list/", views.grn_list, name="grn_list"),
     path("stock/", views.stock_list, name="stock_list"),
+    path("grn/<int:pk>/", views.grn_detail, name="grn_detail"),
+    path("grn/<int:pk>/delete/", views.grn_delete, name="grn_delete"),
 ]

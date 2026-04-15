@@ -23,8 +23,6 @@
 <i data-feather="home"></i> Dashboard
 </a>
 </li>
-
-<!-- ================= UTILITIES ================= -->
 <!-- ================= UTILITIES ================= -->
 <li class="relative">
 
@@ -179,7 +177,7 @@ class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 </div>
 </li>
 <!-- ================= INVENTORY ================= -->
-<li>
+<li class="relative">
 <button onclick="toggleMenu('inventory')" 
 class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <span class="flex gap-2 items-center">
@@ -188,14 +186,30 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <i data-feather="chevron-right"></i>
 </button>
 
-<div id="inventoryMenu" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-900 p-2 rounded">
-<a href="{% url 'mpr_entry' %}" class="block px-3 py-2 hover:bg-gray-700">MPR Entry</a>
-<a href="{% url 'mpr_list' %}" class="block px-3 py-2 hover:bg-gray-700">MPR List</a>
+<div id="inventoryMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+    <!-- MPR Sub -->
+    <div class="relative">
+        <button onclick="toggleSub(event,'mprSub')" 
+        class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+            <span class="flex items-center gap-2">
+                <i data-feather="file-text"></i> MPR
+            </span>
+            <i data-feather="chevron-right"></i>
+        </button>
+        <div id="mprSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+            <a href="{% url 'mpr_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="plus"></i> Entry
+            </a>
+            <a href="{% url 'mpr_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="list"></i> List
+            </a>
+        </div>
+    </div>
 </div>
 </li>
 
 <!-- ================= PURCHASING ================= -->
-<li>
+<li class="relative">
 <button onclick="toggleMenu('purchasing')" 
 class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <span class="flex gap-2 items-center">
@@ -204,38 +218,84 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <i data-feather="chevron-right"></i>
 </button>
 
-<div id="purchasingMenu" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-900 p-2 rounded">
+<div id="purchasingMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
 
-<a href="{% url 'po_list' %}" class="block px-3 py-2 hover:bg-gray-700">
-Purchase Orders
+<!-- Purchase Order Sub -->
+<div class="relative">
+<button onclick="toggleSub(event,'poSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex items-center gap-2">
+<i data-feather="file-text"></i> Purchase Order
+</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="poSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="{% url 'po_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> PO List
 </a>
-
-<a href="{% url 'create_po' %}" class="block px-3 py-2 hover:bg-gray-700">
-Create PO
+<a href="{% url 'create_po' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Create PO
 </a>
-
 {% if perms.purchasing.can_approve_po %}
-<a href="{% url 'po_approval_list' %}" class="block px-3 py-2 hover:bg-gray-700">
-PO Approvals
+<a href="{% url 'po_approval_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="check-square"></i> Approvals
 </a>
+{% endif %}
+</div>
+</div>
 
-<a href="/purchasing/create-grn/" class="block px-3 py-2 hover:bg-gray-700">
-Create GRN
-</a>
+<!-- GRN Sub -->
+{% if perms.purchasing.can_approve_po %}
+<div class="relative">
+<button onclick="toggleSub(event,'grnSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="truck"></i> GRN
+</span>
+<i data-feather="chevron-right"></i>
+</button>
 
-<a href="/purchasing/grn-list/" class="block px-3 py-2 hover:bg-gray-700">
-GRN List
+<div id="grnSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="/purchasing/create-grn/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Entry
 </a>
+<a href="/purchasing/grn-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> List
+</a>
+</div>
+</div>
 {% endif %}
 
 </div>
 </li>
 
-<!-- STORE -->
-<li>
-<a href="{% url 'stock_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<!-- ================= STORE ================= -->
+<li class="relative">
+<button onclick="toggleMenu('store')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
 <i data-feather="archive"></i> Store
-</a>
+</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="storeMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+    <div class="relative">
+        <button onclick="toggleSub(event,'stockSub')" 
+        class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+            <span class="flex items-center gap-2">
+                <i data-feather="database"></i> Stock
+            </span>
+            <i data-feather="chevron-right"></i>
+        </button>
+        <div id="stockSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+            <a href="{% url 'stock_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="list"></i> Stock Report
+            </a>
+        </div>
+    </div>
+</div>
 </li>
 
 <!-- CREATE USER -->

@@ -118,42 +118,54 @@ def vendor_list(request):
     )    
 # ================= Rack Entry View =================
 def rack_entry(request):
-
-    # racks = Rack.objects.all().order_by("-id")
-    racks = Rack.objects.select_related('created_by').all().order_by("-id")
-
+    departments = Department.objects.all()
     if request.method == "POST":
 
         rack_no = request.POST.get("rack_no")
+        department_id = request.POST.get("department")
         location = request.POST.get("location")
-        created_by = request.user
 
-        if Rack.objects.filter(rack_no=rack_no).exists():
-            messages.error(request, "Rack already exists")
-        else:
-            Rack.objects.create(
-                rack_no=rack_no,
-                location=location,
-                created_by=created_by
-            )
-            messages.success(request, "Rack Created Successfully")
+        # 🔥 validation
+        if not rack_no or not department_id:
+            messages.error(request, "Rack No and Department required")
+            return redirect("rack_entry")
 
+        # 🔥 duplicate check
+        if Rack.objects.filter(rack_no=rack_no, department_id=department_id).exists():
+            messages.error(request, "This rack already exists in this department")
+            return redirect("rack_entry")
+    
+        # ✅ save
+        Rack.objects.create(
+            rack_no=rack_no,
+            department_id=department_id,
+            location=location,
+            created_by=request.user
+        )
+
+        messages.success(request, "Rack created successfully")
         return redirect("rack_entry")
 
-    return render(
-        request,
-        "utilities/rack_entry.html",
-        {"racks": racks}
-    )
-    
-# ✅ RACK LIST (TABLE)
+    return render(request, "utilities/rack_entry.html", {
+        "departments": departments
+        })  
+
+def rack_delete(request, id):
+
+    rack = get_object_or_404(Rack, id=id)
+
+    rack.delete()
+
+    messages.success(request, "Rack deleted successfully")
+
+    return redirect("rack_list")
 def rack_list(request):
-    racks = Rack.objects.all()
+
+    racks = Rack.objects.all().order_by("-id")
 
     return render(request, "utilities/rack_list.html", {
         "racks": racks
-    })
-    
+    }) 
 
 # ================= AUTO YARN CODE =================
 def generate_yarn_code():
