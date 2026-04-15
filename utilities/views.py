@@ -123,35 +123,30 @@ def rack_entry(request):
     departments = Department.objects.all()
 
     if request.method == "POST":
-
         rack_no = request.POST.get("rack_no")
-        department = request.POST.get("department")
+        department_id = request.POST.get("department")
         location = request.POST.get("location")
 
-        # 🔥 validation
-        if not rack_no or not department:
+        if not rack_no or not department_id:
             messages.error(request, "Rack No and Department required")
             return redirect("rack_entry")
 
-        # 🔥 SAFE conversion
         if not str(department_id).isdigit():
             messages.error(request, "Invalid Department")
             return redirect("rack_entry")
 
-        department_id = int(department_id)  # 🔥 FIX
+        department = get_object_or_404(Department, id=int(department_id))
 
-        # 🔥 duplicate check
-        if Rack.objects.filter(rack_no=rack_no, department_id=department_id).exists():
-            messages.error(request, "This rack already exists in this department")
+        try:
+            Rack.objects.create(
+                rack_no=rack_no,
+                department=department,
+                location=location,
+                created_by=request.user if request.user.is_authenticated else None
+            )
+        except IntegrityError:
+            messages.error(request, "This rack already exists")
             return redirect("rack_entry")
-
-        # ✅ save
-        Rack.objects.create(
-            rack_no=rack_no,
-            department=department,
-            location=location,
-            created_by=request.user
-        )
 
         messages.success(request, "Rack created successfully")
         return redirect("rack_entry")
