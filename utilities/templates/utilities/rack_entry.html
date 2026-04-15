@@ -17,7 +17,7 @@
     <label class="block text-sm font-semibold mb-1">Department</label>
 
     <select name="department" class="border p-2 w-full" required>
-        <option value="">Select Department</option>
+        <option value="">Select Department Name</option>
 
         {% for dept in departments %}
             <option value="{{ dept.id }}">{{ dept.name }}</option>
