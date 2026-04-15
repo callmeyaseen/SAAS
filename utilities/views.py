@@ -119,6 +119,7 @@ def vendor_list(request):
 # ================= Rack Entry View =================
 def rack_entry(request):
     departments = Department.objects.all()
+
     if request.method == "POST":
 
         rack_no = request.POST.get("rack_no")
@@ -130,11 +131,18 @@ def rack_entry(request):
             messages.error(request, "Rack No and Department required")
             return redirect("rack_entry")
 
+        # 🔥 SAFE conversion
+        if not str(department_id).isdigit():
+            messages.error(request, "Invalid Department")
+            return redirect("rack_entry")
+
+        department_id = int(department_id)  # 🔥 FIX
+
         # 🔥 duplicate check
         if Rack.objects.filter(rack_no=rack_no, department_id=department_id).exists():
             messages.error(request, "This rack already exists in this department")
             return redirect("rack_entry")
-    
+
         # ✅ save
         Rack.objects.create(
             rack_no=rack_no,
@@ -148,8 +156,7 @@ def rack_entry(request):
 
     return render(request, "utilities/rack_entry.html", {
         "departments": departments
-        })  
-
+    })
 def rack_delete(request, id):
 
     rack = get_object_or_404(Rack, id=id)
