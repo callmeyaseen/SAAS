@@ -144,8 +144,9 @@ def rack_entry(request):
                 location=location,
                 created_by=request.user if request.user.is_authenticated else None
             )
-        except IntegrityError:
-            messages.error(request, "This rack already exists")
+        except Exception as e:
+            print("ERROR:", e)
+            messages.error(request, "Something went wrong")
             return redirect("rack_entry")
 
         messages.success(request, "Rack created successfully")
