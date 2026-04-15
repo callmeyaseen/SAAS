@@ -125,11 +125,11 @@ def rack_entry(request):
     if request.method == "POST":
 
         rack_no = request.POST.get("rack_no")
-        department_id = request.POST.get("department")
+        department = request.POST.get("department")
         location = request.POST.get("location")
 
         # 🔥 validation
-        if not rack_no or not department_id:
+        if not rack_no or not department:
             messages.error(request, "Rack No and Department required")
             return redirect("rack_entry")
 
@@ -148,7 +148,7 @@ def rack_entry(request):
         # ✅ save
         Rack.objects.create(
             rack_no=rack_no,
-            department_id=department_id,
+            department=department,
             location=location,
             created_by=request.user
         )
