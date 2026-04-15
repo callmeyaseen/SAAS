@@ -4,12 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from .models import Department, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem
 from security.utils import get_permission
 from django.contrib.auth.models import User
 from datetime import date
 from django.db import IntegrityError
 from django.db.models import Q
+from django.db import transaction
 @login_required(login_url='user_login')
 
 def vendor_entry(request):
@@ -423,23 +425,21 @@ def product_entry(request):
         if action == "save":
 
             if product_name and department_id:
-
-                # ✅ Duplicate check (case-insensitive)
-                if Product.objects.filter(product_name__iexact=product_name).exists():
-                    messages.error(request, "Product already exists!")
-                    return redirect("product_entry")
-
                 try:
-                    Product.objects.create(
-                        voucher_no=voucher_auto,
-                        product_name=product_name,
-                        department_id=department_id,
-                        created_by=request.user
-                    )
+                    with transaction.atomic():
+                        # ✅ Duplicate check (case-insensitive)
+                        if Product.objects.filter(product_name__iexact=product_name).exists():
+                            messages.error(request, "Product already exists!")
+                            return redirect("product_entry")
 
-                    messages.success(request, "Product Saved Successfully")
-                    return redirect("product_entry")
-
+                        Product.objects.create(
+                            voucher_no=voucher_auto,
+                            product_name=product_name,
+                            department_id=department_id,
+                            created_by=request.user
+                        )
+                        messages.success(request, "Product Saved Successfully")
+                        return redirect("product_entry")
                 except IntegrityError:
                     messages.error(request, "Duplicate product not allowed!")
                     return redirect("product_entry")
@@ -475,24 +475,23 @@ def product_entry(request):
         elif action == "update":
 
             if voucher_no:
-
                 try:
-                    product = Product.objects.get(voucher_no=voucher_no)
+                    with transaction.atomic():
+                        product = Product.objects.get(voucher_no=voucher_no)
 
-                    # ✅ Duplicate check (exclude self)
-                    if Product.objects.filter(
-                        product_name__iexact=product_name
-                    ).exclude(id=product.id).exists():
-                        messages.error(request, "Product name already exists!")
+                        # ✅ Duplicate check (exclude self)
+                        if Product.objects.filter(
+                            product_name__iexact=product_name
+                        ).exclude(id=product.id).exists():
+                            messages.error(request, "Product name already exists!")
+                            return redirect("product_entry")
+
+                        product.product_name = product_name
+                        product.department_id = department_id
+                        product.save()
+
+                        messages.success(request, "Product Updated Successfully")
                         return redirect("product_entry")
-
-                    product.product_name = product_name
-                    product.department_id = department_id
-                    product.save()
-
-                    messages.success(request, "Product Updated Successfully")
-                    return redirect("product_entry")
-
                 except Product.DoesNotExist:
                     messages.error(request, "Product Not Found")
 
@@ -619,56 +618,37 @@ def recipe_entry(request):
                 messages.error(request, "Recipe already exists for this product")
                 return redirect("recipe_entry")
 
-            total = sum([float(p) for p in percentages if p])
+            # float comparison fix (rounding to avoid 99.99999 error)
+            total = round(sum([float(p) for p in percentages if p]), 2)
 
-            if total != 100:
+            if total != 100.0:
                 messages.error(request, "Total must be exactly 100%")
                 return redirect("recipe_entry")
 
             try:
-                recipe = Recipe.objects.create(
-                    voucher_no=voucher_auto,
-                    finished_product_id=product_id,
-                    department_id=department_id,
-                    created_by=request.user
-                )
+                with transaction.atomic():
+                    recipe = Recipe.objects.create(
+                        voucher_no=voucher_auto,
+                        finished_product_id=product_id,
+                        department_id=department_id,
+                        created_by=request.user
+                    )
 
-                used_items = set()
+                    used_items = set()
+                    for item, p in zip(items, percentages):
+                        if not item or not p: continue
 
-                for item, p in zip(items, percentages):
+                        if item in used_items:
+                            raise ValueError("Duplicate item not allowed in recipe")
+                        used_items.add(item)
 
-                    if not item:
-                        continue
-
-                    # ❌ duplicate block
-                    if item in used_items:
-                        messages.error(request, "Duplicate item not allowed")
-                        recipe.delete()
-                        return redirect("recipe_entry")
-
-                    used_items.add(item)
-
-                    if "product_" in item:
-                        pid = item.split("_")[1]
-
-                        RecipeItem.objects.create(
-                            recipe=recipe,
-                            product_id=pid,
-                            percentage=p
-                        )
-
-                    elif "yarn_" in item:
-                        yid = item.split("_")[1]
-
-                        RecipeItem.objects.create(
-                            recipe=recipe,
-                            yarn_id=yid,
-                            percentage=p
-                        )
+                        if "product_" in item:
+                            RecipeItem.objects.create(recipe=recipe, product_id=item.split("_")[1], percentage=p)
+                        elif "yarn_" in item:
+                            RecipeItem.objects.create(recipe=recipe, yarn_id=item.split("_")[1], percentage=p)
 
                 messages.success(request, "Recipe Saved Successfully ✅")
                 return redirect("recipe_entry")
-
             except Exception as e:
                 messages.error(request, f"Error: {str(e)}")
                 return redirect("recipe_entry")
@@ -699,44 +679,39 @@ def recipe_entry(request):
                 messages.error(request, "Recipe not found")
                 return redirect("recipe_entry")
 
-            total = sum([float(p) for p in percentages if p])
+            total = round(sum([float(p) for p in percentages if p]), 2)
 
-            if total != 100:
+            if total != 100.0:
                 messages.error(request, "Total must be exactly 100%")
                 return redirect("recipe_entry")
 
-            # delete old items
-            recipe.items.all().delete()
+            try:
+                with transaction.atomic():
+                    # delete old items
+                    recipe.items.all().delete()
+                    used_items = set()
 
-            used_items = set()
+                    for item, p in zip(items, percentages):
+                        if not item or not p: continue
+                        if item in used_items:
+                            raise ValueError("Duplicate item detected during update")
+                        used_items.add(item)
 
-            for item, p in zip(items, percentages):
+                        if "product_" in item:
+                            RecipeItem.objects.create(recipe=recipe, product_id=item.split("_")[1], percentage=p)
+                        elif "yarn_" in item:
+                            RecipeItem.objects.create(recipe=recipe, yarn_id=item.split("_")[1], percentage=p)
 
-                if not item:
-                    continue
+                    # Update header if needed
+                    recipe.department_id = department_id
+                    recipe.finished_product_id = product_id
+                    recipe.save()
 
-                if item in used_items:
-                    messages.error(request, "Duplicate item not allowed")
-                    return redirect("recipe_entry")
-
-                used_items.add(item)
-
-                if "product_" in item:
-                    RecipeItem.objects.create(
-                        recipe=recipe,
-                        product_id=item.split("_")[1],
-                        percentage=p
-                    )
-
-                elif "yarn_" in item:
-                    RecipeItem.objects.create(
-                        recipe=recipe,
-                        yarn_id=item.split("_")[1],
-                        percentage=p
-                    )
-
-            messages.success(request, "Recipe Updated Successfully")
-            return redirect("recipe_entry")
+                messages.success(request, "Recipe Updated Successfully")
+                return redirect("recipe_entry")
+            except Exception as e:
+                messages.error(request, f"Update Failed: {str(e)}")
+                return redirect("recipe_entry")
 
         # ================= DELETE =================
         elif action == "delete":
