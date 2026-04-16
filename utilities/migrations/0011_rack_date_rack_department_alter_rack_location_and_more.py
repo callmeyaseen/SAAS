@@ -10,6 +10,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Drop view pehle
+        migrations.RunSQL(
+            "DROP VIEW IF EXISTS vw_rack_user;",
+            reverse_sql="",
+        ),
+
         migrations.AddField(
             model_name='rack',
             name='date',
@@ -28,5 +34,15 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='rack',
             unique_together={('rack_no', 'department')},
+        ),
+
+        # View wapas banao
+        migrations.RunSQL(
+            """
+            CREATE OR REPLACE VIEW vw_rack_user AS
+            SELECT r.id, r.rack_no, r.location
+            FROM utilities_rack r;
+            """,
+            reverse_sql="DROP VIEW IF EXISTS vw_rack_user;",
         ),
     ]
