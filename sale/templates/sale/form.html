@@ -1,0 +1,225 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-4 sm:p-6">
+
+  <!-- Header -->
+  <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+    <h1 class="text-xl sm:text-2xl font-bold">Sales Order</h1>
+
+    <div class="flex flex-wrap gap-2">
+      <a href="{% url 'sale:sale_create' %}" class="px-3 py-1 bg-blue-500 text-white rounded">New</a>
+      <a href="{% url 'sale:sale_list' %}" class="px-3 py-1 bg-indigo-500 text-white rounded">Find</a>
+      <button type="submit" form="saleForm" class="px-3 py-1 bg-green-500 text-white rounded">Save</button>
+
+      {% if sale %}
+      <a href="{% url 'sale:sale_update' sale.id %}" class="px-3 py-1 bg-yellow-500 text-white rounded">Edit</a>
+      <a href="{% url 'sale:sale_delete' sale.id %}" class="px-3 py-1 bg-red-500 text-white rounded">Delete</a>
+      <a href="{% url 'sale:sale_detail' sale.id %}" class="px-3 py-1 bg-purple-500 text-white rounded">View</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <form method="POST" id="saleForm">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-6 gap-4 text-sm">
+
+      <div>
+        <label>Sale Order No</label>
+        <input name="sale_order_no" value="{{ sale.sale_order_no }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>SO Date</label>
+        <input type="date" name="so_date" value="{{ sale.so_date|date:'Y-m-d'}}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Customer PO No</label>
+        <input name="customer_po_no" value="{{ sale.customer_po_no }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Customer PO Date</label>
+        <input type="date" name="customer_po_date" value="{{ sale.customer_po_date }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select name="category" class="w-full border p-2 rounded">
+          <option {% if sale.category == "Local" %}selected{% endif %}>Local</option>
+          <option {% if sale.category == "Export" %}selected{% endif %}>Export</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Customer Name</label>
+        <input name="customer_name" value="{{ sale.customer_name }}" class="w-full border p-2 rounded">
+      </div>
+
+      <!-- ✅ Item Code -->
+      <div>
+        <label>Item Code</label>
+        <input id="itemCode" name="item_code" class="w-full border p-2 rounded" readonly>
+      </div>
+
+      <!-- ✅ Item Name -->
+      <div class="lg:col-span-2">
+        <label>Item Name</label>
+        <select id="itemSelect" name="item" class="w-full border p-2 rounded">
+
+          <option value="">Select Item</option>
+
+          <optgroup label="Products">
+            {% for product in products %}
+              <option 
+                value="{{ product.id }}"
+                data-type="product"
+                data-code="{{ product.voucher_no }}">
+                {{ product.product_name }}
+              </option>
+            {% endfor %}
+          </optgroup>
+
+          <optgroup label="Yarns">
+            {% for yarn in yarns %}
+              <option 
+                value="{{ yarn.id }}"
+                data-type="yarn"
+                data-code="{{ yarn.yarn_code }}">
+                {{ yarn.item_name }} ({{ yarn.yarn_code }})
+              </option>
+            {% endfor %}
+          </optgroup>
+
+        </select>
+
+        <input type="hidden" name="item_type" id="item_type">
+      </div>
+
+      <div>
+        <label>Order Qty</label>
+        <input name="order_qty" value="{{ sale.order_qty }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Fabric Width Type</label>
+        <select name="fabric_width_type" class="w-full border p-2 rounded">
+          <option {% if sale.fabric_width_type == "Tube" %}selected{% endif %}>Tube</option>
+          <option {% if sale.fabric_width_type == "Open" %}selected{% endif %}>Open</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fabric Width</label>
+        <input name="fabric_width" value="{{ sale.fabric_width }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Unit</label>
+        <select name="unit" class="w-full border p-2 rounded">
+          <option>KG</option>
+          <option>Meters</option>
+          <option>Yards</option>
+          <option>PCS</option>
+        </select>
+      </div>
+
+      <div class="lg:col-span-2">
+        <label>Finishing Process</label>
+        <input name="finishing_process" value="{{ sale.finishing_process }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Cut Level</label>
+        <input name="cut_level" value="{{ sale.cut_level }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Sample Status</label>
+        <select name="sample_status" class="w-full border p-2 rounded">
+          <option {% if sale.sample_status == "Yes" %}selected{% endif %}>Yes</option>
+          <option {% if sale.sample_status == "No" %}selected{% endif %}>No</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Received By</label>
+        <input name="received_by" value="{{ sale.received_by }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Shipment Location</label>
+        <input name="shipment_location" value="{{ sale.shipment_location }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Delivery Date</label>
+        <input type="date" name="delivery_date" value="{{ sale.delivery_date }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Order Type</label>
+        <input name="order_type" value="{{ sale.order_type }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Payment Term</label>
+        <input name="payment_term" value="{{ sale.payment_term }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Price Order</label>
+        <input name="price_order" value="{{ sale.price_order }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Rate</label>
+        <input name="rate" value="{{ sale.rate }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Currency Type</label>
+        <input name="currency_type" value="{{ sale.currency_type }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div>
+        <label>Currency Rate</label>
+        <input name="currency_rate" value="{{ sale.currency_rate }}" class="w-full border p-2 rounded">
+      </div>
+
+      <div class="lg:col-span-6">
+        <label>Description</label>
+        <textarea name="description" class="w-full border p-2 rounded">{{ sale.description }}</textarea>
+      </div>
+
+    </div>
+  </form>
+
+</div>
+
+<!-- ✅ JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const itemSelect = document.getElementById("itemSelect");
+    const itemCode = document.getElementById("itemCode");
+    const itemType = document.getElementById("item_type");
+
+    itemSelect.addEventListener("change", function () {
+
+        let selected = this.options[this.selectedIndex];
+
+        let code = selected.getAttribute("data-code");
+        let type = selected.getAttribute("data-type");
+
+        itemCode.value = code || "";
+        itemType.value = type || "";
+    });
+
+});
+</script>
+
+{% endblock %}

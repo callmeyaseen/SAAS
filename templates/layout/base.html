@@ -297,7 +297,46 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
     </div>
 </div>
 </li>
+<!-- ================= Sales ================= -->
+<li class="relative">
+<button onclick="toggleMenu('sales')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="dollar-sign"></i> Sales
+</span>
+<i data-feather="chevron-right"></i>
+</button>
 
+<div id="salesMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+
+    <!-- Sales Entry -->
+    <div class="relative">
+        <button onclick="toggleSub(event,'salesEntrySub')" 
+        class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+            <span class="flex items-center gap-2">
+                <i data-feather="database"></i> Sales Entry
+            </span>
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="salesEntrySub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <!-- ✅ FIXED -->
+            <a href="{% url 'sale:sale_create' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="plus"></i> Sale Entry
+            </a>
+
+            <a href="{% url 'sale:sale_list' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="list"></i> Sale List
+            </a>
+
+        </div>
+    </div>
+
+</div>
+</li>
 <!-- CREATE USER -->
 {% if request.user.is_superuser %}
 <li>
@@ -351,6 +390,5 @@ document.addEventListener("click",closeAll)
 feather.replace()
 
 </script>
-
 </body>
 </html>

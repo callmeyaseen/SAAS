@@ -1,0 +1,95 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl p-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Sale Detail</h2>
+
+        <a href="{% url 'sale:sale_list' %}" 
+        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            ← Back
+        </a>
+    </div>
+
+    <!-- Card -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+
+        <div><strong>Sale No:</strong> {{ sale.sale_order_no }}</div>
+        <div><strong>Date:</strong> {{ sale.so_date }}</div>
+
+        <div><strong>Customer:</strong> {{ sale.customer_name }}</div>
+        <div><strong>Category:</strong> {{ sale.category }}</div>
+
+        <!-- ✅ Item -->
+        <div class="md:col-span-2">
+            <strong>Item:</strong>
+            {% if sale.product %}
+                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    {{ sale.product.product_name }}
+                </span>
+            {% elif sale.yarn %}
+                <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                    {{ sale.yarn.item_name }}
+                </span>
+            {% else %}
+                <span class="text-gray-400">N/A</span>
+            {% endif %}
+        </div>
+
+        <!-- ✅ Code -->
+        <div>
+            <strong>Item Code:</strong>
+            {% if sale.product %}
+                {{ sale.product.voucher_no }}
+            {% elif sale.yarn %}
+                {{ sale.yarn.yarn_code }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div><strong>Quantity:</strong> {{ sale.order_qty }}</div>
+
+        <div><strong>Unit:</strong> {{ sale.unit }}</div>
+        <div><strong>Fabric Width:</strong> {{ sale.fabric_width }}</div>
+
+        <div><strong>Shipment:</strong> {{ sale.shipment_location }}</div>
+        <div><strong>Delivery Date:</strong> {{ sale.delivery_date }}</div>
+
+        <div><strong>Order Type:</strong> {{ sale.order_type }}</div>
+        <div><strong>Payment Term:</strong> {{ sale.payment_term }}</div>
+
+        <div><strong>Price:</strong> {{ sale.price_order }}</div>
+        <div><strong>Rate:</strong> {{ sale.rate }}</div>
+
+        <div><strong>Currency:</strong> {{ sale.currency_type }}</div>
+        <div><strong>Currency Rate:</strong> {{ sale.currency_rate }}</div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+            <strong>Description:</strong>
+            <p class="mt-1 text-gray-600">
+                {{ sale.description|default:"No description" }}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-6 flex gap-2">
+        <a href="{% url 'sale:sale_update' sale.id %}" 
+        class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+            Edit
+        </a>
+
+        <a href="{% url 'sale:sale_delete' sale.id %}" 
+        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+            Delete
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
