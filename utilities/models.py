@@ -117,3 +117,28 @@ class RecipeItem(models.Model):
             return f"{self.yarn} ({self.percentage}%)"
         if self.product:
             return f"{self.product} ({self.percentage}%)"
+        
+        
+        
+# ================= Machine Entry Model =================
+class Machine(models.Model):
+    MACHINE_GROUP_CHOICES = [
+        ('Flat Knit', 'Flat Knit'),
+        ('Circular', 'Circular'),
+        ('Wrist', 'Wrist'),
+    ]
+
+    machine_code = models.CharField(max_length=50, unique=True)
+    machine_name = models.CharField(max_length=100)
+    gauge = models.IntegerField()
+    dia = models.IntegerField()
+    machine_brand = models.CharField(max_length=100)
+    feeders = models.IntegerField()
+    structure = models.CharField(max_length=100)
+    capacity_per_day = models.IntegerField()
+    machine_group = models.CharField(max_length=20, choices=MACHINE_GROUP_CHOICES)
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="machines_created")
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="machines_updated")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

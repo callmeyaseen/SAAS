@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from django.http import HttpResponse, HttpResponseForbidden
-from .models import Department, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem
+from .models import Department, Machine, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem
 from security.utils import get_permission
 from django.contrib.auth.models import User
 from datetime import date
@@ -556,16 +556,6 @@ def product_view(request, voucher_no):
         "product": product
     })
 
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
-from datetime import date
-from .models import Recipe, RecipeItem, Product, Yarn, Department
-
-
 # ================= AUTO VOUCHER =================
 def generate_recipe_voucher():
     last = Recipe.objects.order_by("-id").first()
@@ -740,3 +730,34 @@ def recipe_entry(request):
         "recipe": recipe,
         "recipe_items": recipe_items
     })
+    
+    
+# ================= MACHINE VIEW =================
+def machine_view(request):
+    machine = None
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        # SAVE
+        if action == "save":
+            Machine.objects.create(
+                machine_code=request.POST.get("machine_code"),
+                machine_name=request.POST.get("machine_name"),
+                gauge=request.POST.get("gauge"),
+                dia=request.POST.get("dia"),
+                machine_brand=request.POST.get("machine_brand"),
+                feeders=request.POST.get("feeders"),
+                structure=request.POST.get("structure"),
+                capacity_per_day=request.POST.get("capacity_per_day"),
+                machine_group=request.POST.get("machine_group"),
+                is_active=True if request.POST.get("is_active") == "on" else False
+            )
+            return redirect("machine")
+
+        # FIND
+        elif action == "find":
+            code = request.POST.get("machine_code")
+            machine = Machine.objects.filter(machine_code=code).first()
+
+    return render(request, "utilities/machine_entry_form.html", {"machine": machine})

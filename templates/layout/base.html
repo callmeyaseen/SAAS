@@ -3,7 +3,9 @@
 <head>
 <title>Textile ERP</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- <script src="https://cdn.tailwindcss.com"></script> -->
+ {% load static %}
+<link href="{% static 'css/output.css' %}" rel="stylesheet">
 <script src="https://unpkg.com/feather-icons"></script>
 
 </head>
@@ -68,7 +70,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="machinesSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="/utilities/vendor-entry/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'machine' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i>Machine Entry
 </a>
 <a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">

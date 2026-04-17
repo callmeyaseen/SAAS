@@ -1,0 +1,126 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-8">
+
+  <h2 class="text-2xl font-bold mb-6 border-b pb-2 text-center">
+    Machine Entry Form
+  </h2>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+      <div>
+        <label class="text-sm font-semibold">Machine Code</label>
+        <input type="text" name="machine_code"
+          value="{{ machine.machine_code|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Machine Name</label>
+        <input type="text" name="machine_name"
+          value="{{ machine.machine_name|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Gauge</label>
+        <input type="text" name="gauge"
+          value="{{ machine.gauge|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Dia</label>
+        <input type="text" name="dia"
+          value="{{ machine.dia|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Machine Brand</label>
+        <input type="text" name="machine_brand"
+          value="{{ machine.machine_brand|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">No of Feeders</label>
+        <input type="text" name="feeders"
+          value="{{ machine.feeders|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="text-sm font-semibold">Structure</label>
+        <input type="text" name="structure"
+          value="{{ machine.structure|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Capacity</label>
+        <input type="text" name="capacity_per_day"
+          value="{{ machine.capacity_per_day|default:'' }}"
+          class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold">Machine Group</label>
+        <select name="machine_group" class="w-full border rounded px-3 py-2">
+          <option value="Circular">Circular Knitting</option>
+          <option value="Flat Knit">Flat Knitting</option>
+          <option value="Wrist">Wrist Knitting</option>
+        </select>
+      </div>
+      <div class="text-sm font-semibold"">
+        <input type="checkbox" name="is_active"
+          {% if machine and machine.is_active %}checked{% endif %}/>
+        <span class="text-sm">Check For Active Machine & Uncheck For InActive Machine</span>
+      </div>
+
+    </div>
+
+    <!-- Checkbox -->
+
+    <!-- Buttons -->
+    <div class="mt-6 flex flex-wrap gap-12 justify-center">
+
+      <button type="submit" name="action" value="save"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Save
+      </button>
+
+      <button type="submit" name="action" value="find"
+        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+        Find
+      </button>
+
+      <button type="reset"
+        class="bg-yellow-500 text-white px-4 py-2 rounded">
+        New
+      </button>
+      <button type="reset"
+        class="bg-blue-600 text-white px-4 py-2 rounded">
+        View
+      </button>
+      <button type="reset"
+        class="bg-red-500 text-white px-4 py-2 rounded">
+        Delete
+      </button>
+      <button type="reset"
+        class="bg-gray-500 text-white px-4 py-2 rounded">
+        Exit
+      </button>
+
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

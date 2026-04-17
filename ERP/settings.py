@@ -58,15 +58,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ERP.wsgi.application'
-
-# DATABASE CONFIGURATION
-# Agar Render par DATABASE_URL set hai to wo use hoga, warna local SQLite
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgres://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v',
-#         conn_max_age=600
-#     )
-# }
 if 'RENDER' in os.environ:
     # Render (Online) settings
     DATABASES = {
@@ -109,3 +100,6 @@ SESSION_COOKIE_AGE = 1209600          # 2 weeks
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True
 LOGIN_REDIRECT_URL = 'home'
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
