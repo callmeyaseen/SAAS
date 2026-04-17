@@ -34,7 +34,7 @@ def sale_create(request):
         item_id = request.POST.get('item')
 
         if not item_id:
-            return render(request, 'sale/form.html', {
+            return render(request, 'sale/sale_order_entry.html', {
                 'products': products,
                 'yarns': yarns,
                 'error': 'Please select product'
@@ -73,11 +73,11 @@ def sale_create(request):
 
         return redirect('sale:sale_list')
 
-    return render(request, 'sale/form.html', {'products': products, 'yarns': yarns})
+    return render(request, 'sale/sale_order_entry.html', {'products': products, 'yarns': yarns})
 # LIST
 def sale_list(request):
     sales = SaleOrder.objects.all().order_by('-id')
-    return render(request, 'sale/list.html', {'sales': sales})
+    return render(request, 'sale/complete_so_list.html', {'sales': sales})
 # UPDATE
 def sale_update(request, pk):
     sale = get_object_or_404(SaleOrder, pk=pk)
@@ -112,7 +112,7 @@ def sale_update(request, pk):
         sale.save()
         return redirect('sale:sale_list')
 
-    return render(request, 'sale/form.html', {'sale': sale})
+    return render(request, 'sale/sale_order_entry.html', {'sale': sale})
 
 # DELETE
 def sale_delete(request, pk):
@@ -124,4 +124,4 @@ def sale_delete(request, pk):
 # DETAIL (VIEW BUTTON)
 def sale_detail(request, pk):
     sale = get_object_or_404(SaleOrder, pk=pk)
-    return render(request, 'sale/detail.html', {'sale': sale})
+    return render(request, 'sale/sale_order_view.html', {'sale': sale})

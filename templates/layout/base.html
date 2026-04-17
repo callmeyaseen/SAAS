@@ -51,14 +51,32 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 <div id="vendorsSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
 <a href="/utilities/vendor-entry/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="plus"></i> Entry
+<i data-feather="plus"></i> Vendor Entry
 </a>
 <a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="list"></i> List
+<i data-feather="list"></i> Vendor List
 </a>
 </div>
 </div>
 
+<!-- Machine  -->
+<div class="relative">
+<button onclick="toggleSub(event,'machinesSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex items-center gap-2"><i data-feather="tool"></i> Machines</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="machinesSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+<a href="/utilities/vendor-entry/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i>Machine Entry
+</a>
+<a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="list"></i> Machines List
+</a>
+</div>
+</div>
+<!-- Mahines end--> 
 <!-- RACK -->
 <div class="relative">
 <button onclick="toggleSub(event,'rackSub')" 
@@ -71,10 +89,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 <div id="rackSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
 <a href="{% url 'rack_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="plus"></i> Entry
+<i data-feather="plus"></i> Rack Entry
 </a>
 <a href="{% url 'rack_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="list"></i> List
+<i data-feather="list"></i> RackList
 </a>
 </div>
 </div>
@@ -96,7 +114,7 @@ class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p
 
 <a href="{% url 'product_entry' %}" 
 class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="plus"></i> Entry
+<i data-feather="plus"></i> Product Entry
 </a>
 
 <a href="{% url 'product_list' %}" 
@@ -119,10 +137,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 <div id="itemSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
 <a href="{% url 'yarn_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="plus"></i> Entry
+<i data-feather="plus"></i> Item Entry
 </a>
 <a href="{% url 'yarn_filter' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="list"></i> List
+<i data-feather="list"></i> ItemList
 </a>
 </div>
 </div>
@@ -139,7 +157,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 <div id="deptSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
 <a href="{% url 'department_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="plus"></i> Add
+<i data-feather="plus"></i> Department Entry
 </a>
 </div>
 </div>
@@ -150,7 +168,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 <span class="flex gap-2 items-center">
-<i data-feather="layers"></i> Recipe
+<i data-feather="layers"></i> Recipe Entry
 </span>
 
 <i data-feather="chevron-right"></i>
@@ -239,7 +257,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </a>
 {% if perms.purchasing.can_approve_po %}
 <a href="{% url 'po_approval_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="check-square"></i> Approvals
+<i data-feather="check-square"></i> PO Approvals
 </a>
 {% endif %}
 </div>
@@ -324,12 +342,12 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
             <!-- ✅ FIXED -->
             <a href="{% url 'sale:sale_create' %}" 
             class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="plus"></i> Sale Entry
+                <i data-feather="plus"></i> Sale Onder Entry
             </a>
 
             <a href="{% url 'sale:sale_list' %}" 
             class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="list"></i> Sale List
+                <i data-feather="list"></i> Sale Orders List
             </a>
 
         </div>
