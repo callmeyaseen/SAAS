@@ -1,0 +1,79 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto mt-6 bg-gray-900 shadow-xl rounded-xl p-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">Machine List</h1>
+
+        <a href="{% url 'machine' %}" 
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+            + Add Machine
+        </a>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-3 rounded text-white 
+            {% if message.tags == 'success' %} bg-green-500 
+            {% elif message.tags == 'error' %} bg-red-500 
+            {% else %} bg-blue-500 {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-300">
+
+            <thead class="bg-gray-800 text-gray-200 uppercase text-xs">
+                <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">Code</th>
+                    <th class="p-3">Department</th>
+                    <th class="p-3">Name</th>
+                    <th class="p-3">Gauge</th>
+                    <th class="p-3">Dia</th>
+                    <th class="p-3">Brand</th>
+                    <th class="p-3">Feeders</th>
+                    <th class="p-3">Capacity</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for machine in machines %}
+                <tr class="border-b border-gray-700 hover:bg-gray-800 transition">
+
+                    <td class="p-3 font-medium text-white">
+                        {{ forloop.counter }}
+                    </td>
+
+                    <td class="p-3">{{ machine.machine_code }}</td>
+                    <td class="p-3 text-blue-400">{{ machine.department.name }}</td>
+                    <td class="p-3">{{ machine.machine_name }}</td>
+                    <td class="p-3">{{ machine.gauge }}</td>
+                    <td class="p-3">{{ machine.dia }}</td>
+                    <td class="p-3">{{ machine.machine_brand }}</td>
+                    <td class="p-3">{{ machine.feeders }}</td>
+                    <td class="p-3">{{ machine.capacity_per_day }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center p-6 text-gray-400">
+                        No machines found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

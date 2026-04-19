@@ -352,33 +352,101 @@ def yarn_filter(request):
 # ================= Department =================
 @login_required(login_url="user_login")
 def department_entry(request):
+    dept = None
+    
+    # Load from Table Click (GET)
+    edit_id = request.GET.get('edit')
+    if edit_id:
+        dept = Department.objects.filter(id=edit_id).first()
 
-    # SAVE
     if request.method == "POST":
-
+        action = request.POST.get("action")
         name = request.POST.get("name")
         dept_type = request.POST.get("department_type")
+        dept_id = request.POST.get("dept_id")
+        search_id = request.POST.get("search_id")
 
-        if name and dept_type:
+        # 🔍 FIND LOGIC
+        if action == "find":
+            if search_id:
+                dept = Department.objects.filter(id=search_id).first()
+            elif name:
+                dept = Department.objects.filter(name__icontains=name).first()
+            
+            if dept:
+                messages.success(request, f"Department '{dept.name}' Found ✅")
+            else:
+                messages.error(request, "No Department Found ❌")
 
-            Department.objects.create(
-                name=name,
-                department_type=dept_type,
-                created_by=request.user
-            )
+        # 💾 SAVE LOGIC
+        elif action == "save":
+            if name and dept_type:
+                if Department.objects.filter(name__iexact=name).exists():
+                    messages.error(request, "Department name already exists! ⚠️")
+                else:
+                    Department.objects.create(
+                        name=name,
+                        department_type=dept_type,
+                        created_by=request.user
+                    )
+                    messages.success(request, "Department Created Successfully ✅")
+                    return redirect("department_entry")
+            else:
+                messages.error(request, "All fields are required for saving.")
 
-            messages.success(request, "Department Created Successfully")
-            return redirect("department_entry")
+        # 🆙 UPDATE LOGIC
+        elif action == "update":
+            if dept_id:
+                if Department.objects.filter(name__iexact=name).exclude(id=dept_id).exists():
+                    messages.error(request, "Another Department with this name already exists! ⚠️")
+                else:
+                    d_obj = get_object_or_404(Department, id=dept_id)
+                    d_obj.name = name
+                    d_obj.department_type = dept_type
+                    d_obj.save()
+                    messages.success(request, "Department Updated Successfully ✨")
+                    return redirect("department_entry")
+            else:
+                messages.error(request, "Please find a department first to update.")
 
-        else:
-            messages.error(request, "All fields are required")
+        # 🗑️ DELETE LOGIC
+        elif action == "delete":
+            if dept_id:
+                get_object_or_404(Department, id=dept_id).delete()
+                messages.success(request, "Department Deleted Successfully 🗑️")
+                return redirect("department_entry")
+            else:
+                messages.error(request, "Select a department to delete.")
 
-    # LIST
+        # 📄 VIEW DETAIL LOGIC
+        elif action == "view_detail":
+            target_id = dept_id or search_id
+            if target_id:
+                if Department.objects.filter(id=target_id).exists():
+                    return redirect("department_detail", id=target_id)
+                messages.error(request, "Invalid Department ID ❌")
+            else:
+                messages.error(request, "Please find a department first 🔍")
+
+        # 📋 VIEW ALL LOGIC
+        elif action == "view_all":
+            return redirect("department_list")
+
     departments = Department.objects.all().order_by("-id")
-
     return render(request, "utilities/department_entry.html", {
-        "departments": departments
+        "departments": departments,
+        "dept": dept
     })
+
+@login_required(login_url="user_login")
+def department_list(request):
+    departments = Department.objects.all().order_by("-id")
+    return render(request, "utilities/department_list.html", {"departments": departments})
+
+@login_required(login_url="user_login")
+def department_detail(request, id):
+    dept = get_object_or_404(Department, id=id)
+    return render(request, "utilities/department_detail.html", {"dept": dept})
 
 
 
@@ -583,12 +651,15 @@ def recipe_entry(request):
     recipe = None
     recipe_items = []
 
-    if request.method == "POST":
+    # Action POST se bhi aa sakta hai aur GET (sidebar link) se bhi
+    action = request.POST.get("action") or request.GET.get("action")
 
-        action = request.POST.get("action")
+    if request.method == "POST" or action == "view":
+
         voucher_no = request.POST.get("voucher_no")
         product_id = request.POST.get("finished_item")
         department_id = request.POST.get("department")
+        finishing_process = request.POST.get("finishing_process")
 
         items = request.POST.getlist("item_type[]")   # 🔥 NEW (product + yarn)
         percentages = request.POST.getlist("percentage[]")
@@ -617,6 +688,7 @@ def recipe_entry(request):
                         voucher_no=voucher_auto,
                         finished_product_id=product_id,
                         department_id=department_id,
+                        finishing_process=finishing_process if finishing_process else None,
                         created_by=request.user
                     )
 
@@ -691,6 +763,7 @@ def recipe_entry(request):
                     # Update header if needed
                     recipe.department_id = department_id
                     recipe.finished_product_id = product_id
+                    recipe.finishing_process = finishing_process if finishing_process else None
                     recipe.save()
 
                 messages.success(request, "Recipe Updated Successfully")
@@ -712,11 +785,19 @@ def recipe_entry(request):
 
             return redirect("recipe_entry")
 
-        # ================= VIEW =================
-        elif action == "view":
+        # ================= VIEW DETAIL (SINGLE) =================
+        elif action == "view_detail":
+            if voucher_no:
+                recipe_obj = Recipe.objects.filter(voucher_no=voucher_no).first()
+                if recipe_obj:
+                    return render(request, "utilities/recipe_detail.html", {"recipe": recipe_obj})
+                messages.error(request, "Recipe not found to view detail ❌")
+            else:
+                messages.error(request, "Please find a recipe first 🔍")
 
+        # ================= VIEW ALL (COMPLETE) =================
+        elif action == "view_all":
             recipes = Recipe.objects.all().order_by("-id")
-
             return render(request, "utilities/recipe_report.html", {
                 "recipes": recipes
             })
@@ -732,32 +813,114 @@ def recipe_entry(request):
     })
     
     
-# ================= MACHINE VIEW =================
-def machine_view(request):
-    machine = None
+# ================= MACHINE ENTRY =================
+@login_required(login_url="user_login")
+def machine_entry(request):
+    departments = Department.objects.all()
+    return render(request, "utilities/machine_entry_form.html", {
+        "machine": None,
+        "departments": departments
+    })
 
-    if request.method == "POST":
-        action = request.POST.get("action")
 
-        # SAVE
-        if action == "save":
-            Machine.objects.create(
-                machine_code=request.POST.get("machine_code"),
-                machine_name=request.POST.get("machine_name"),
-                gauge=request.POST.get("gauge"),
-                dia=request.POST.get("dia"),
-                machine_brand=request.POST.get("machine_brand"),
-                feeders=request.POST.get("feeders"),
-                structure=request.POST.get("structure"),
-                capacity_per_day=request.POST.get("capacity_per_day"),
-                machine_group=request.POST.get("machine_group"),
-                is_active=True if request.POST.get("is_active") == "on" else False
-            )
+# ==========================================
+# 🎯 ONE CONTROLLER (SAVE / FIND / DELETE)
+# ==========================================
+def machine_action(request):
+    if request.method != "POST":
+        return redirect("machine")  # direct GET hit hua to wapas
+
+    action = request.POST.get("action")  # 👈 button se decide hoga kya karna hai
+    code   = request.POST.get("machine_code")
+    dept_id = request.POST.get("department")
+
+    machine = None  # response me bhejne ke liye
+
+    # -----------------------
+    # 🔍 FIND
+    # -----------------------
+    if action == "find":
+        machine = Machine.objects.filter(machine_code=code).first()  # safe fetch
+
+        if machine:
+            messages.success(request, "Machine Found ✅")
+        else:
+            messages.error(request, "Machine Not Found ❌")
+
+        # same page render with data
+        return render(request, "utilities/machine_entry_form.html", {
+            "machine": machine,
+            "departments": Department.objects.all()
+        })
+
+    # -----------------------
+    # 💾 SAVE (auto code)
+    # -----------------------
+    if action == "save":
+        last = Machine.objects.order_by("-id").first()  # last record
+
+        if last:
+            new_code = f"MC-{last.id + 1:03d}"
+        else:
+            new_code = "MC-001"
+
+        if Machine.objects.filter(machine_code=new_code, department_id=dept_id).exists():
+            messages.error(request, "This Machine Code already exists in this Department! ⚠️")
             return redirect("machine")
 
-        # FIND
-        elif action == "find":
-            code = request.POST.get("machine_code")
-            machine = Machine.objects.filter(machine_code=code).first()
+        Machine.objects.create(
+            machine_code=new_code,
+            machine_name=request.POST.get("machine_name"),
+            department_id=dept_id,
+            gauge=request.POST.get("gauge"),
+            dia=request.POST.get("dia"),
+            machine_brand=request.POST.get("machine_brand"),
+            feeders=request.POST.get("feeders"),
+            structure=request.POST.get("structure"),
+            capacity_per_day=request.POST.get("capacity_per_day"),
+            machine_group=request.POST.get("machine_group"),
+            is_active=True if request.POST.get("is_active") == "on" else False
+        )
 
-    return render(request, "utilities/machine_entry_form.html", {"machine": machine})
+        messages.success(request, f"Saved as {new_code} ✅")
+        return redirect("machine")  
+
+    # -----------------------
+    # ❌ DELETE (by code)
+    # -----------------------
+    if action == "delete":
+        qs = Machine.objects.filter(machine_code=code)
+        if qs.exists():
+            qs.delete()
+            messages.success(request, "Machine Deleted 🗑️")
+        else:
+            messages.error(request, "Machine Not Found ❌")
+
+        return redirect("machine")
+
+    if action == "view_detail":
+        if code:
+            if Machine.objects.filter(machine_code=code).exists():
+                return redirect("machine_detail", code=code)
+            messages.error(request, "Invalid Machine Code ❌")
+        else:
+            messages.error(request, "Please find a machine first or enter code 🔍")
+        return redirect("machine")
+
+    if action == "view_all":
+        return redirect("machine_list")
+
+    return redirect("machine")
+
+
+# =========================
+# 📋 LIST (separate page)
+# =========================
+def machine_list(request):
+    machines = Machine.objects.all().order_by("-id")
+    return render(request, "utilities/machine_list.html", {"machines": machines})
+
+@login_required(login_url="user_login")
+def machine_detail(request, code):
+    machine = get_object_or_404(Machine, machine_code=code)
+    return render(request, "utilities/machine_detail.html", {"machine": machine})

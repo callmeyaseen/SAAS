@@ -10,7 +10,9 @@
         <!-- HEADER -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-700">Recipe / Product Profile</h1>
-            <input type="date" value="{{ today }}" class="border px-3 py-2 rounded-lg">
+            <input type="date" value="{{ today|date:'Y-m-d' }}" 
+                class="border px-3 py-2 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed outline-none shadow-inner" 
+                readonly>
         </div>
 
         <!-- MESSAGES -->
@@ -28,56 +30,57 @@
             {% csrf_token %}
 
             <!-- TOP -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="space-y-6 mb-8 border-b pb-8">
+                <!-- Row 1: Voucher, Department, Finishing Process -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Voucher Number</label>
+                        <input type="text" name="voucher_no"
+                            value="{{ recipe.voucher_no|default:voucher_auto }}"
+                            class="w-full border px-4 py-2 rounded-lg bg-gray-100 font-bold text-gray-700 cursor-not-allowed">
+                    </div>
 
-                <!-- Voucher -->
-                <div>
-                    <label class="text-sm">Voucher</label>
-                    <input type="text" name="voucher_no"
-                        value="{{ recipe.voucher_no|default:voucher_auto }}"
-                        class="w-full border px-3 py-2 rounded-lg bg-gray-100">
+                    <div>
+                        <label class="text-sm font-bold text-blue-600 uppercase tracking-tight">1. Department</label>
+                        <select name="department" id="deptSelect" onchange="updateDepartmentLogic()"
+                            class="w-full border px-4 py-2 rounded-lg bg-blue-50 focus:ring-2 focus:ring-blue-400 font-semibold mt-1">
+                            <option value="">Select Department</option>
+                            {% for d in departments %}
+                            <option value="{{ d.id }}" data-name="{{ d.name }}"
+                                {% if recipe and recipe.department.id == d.id %}selected{% endif %}>
+                                {{ d.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="finishingDiv" class="hidden transition-all duration-300">
+                        <label class="text-sm font-bold text-pink-600 uppercase tracking-tight">2. Finishing Process</label>
+                        <input type="text" name="finishing_process"
+                            value="{{ recipe.finishing_process|default:'' }}"
+                            placeholder="Process details..."
+                            class="w-full border border-pink-200 px-4 py-2 rounded-lg bg-pink-50 mt-1 focus:ring-2 focus:ring-pink-400">
+                    </div>
                 </div>
 
-                <!-- Finished Product (MAIN FIND FIELD) -->
+                <!-- Row 2: Finished Item -->
                 <div>
-                    <label class="text-sm">Finished Item</label>
-                    <select name="finished_item"
-                        class="w-full border px-3 py-2 rounded-lg">
-
+                    <label class="text-sm font-bold text-indigo-600 uppercase tracking-tight">3. Finished Item (Target Product)</label>
+                    <select name="finished_item" id="itemSelect"
+                        class="w-full border px-4 py-2 rounded-lg bg-indigo-50 focus:ring-2 focus:ring-indigo-400 font-semibold mt-1">
                         <option value="">Select Product</option>
-
                         {% for p in products %}
-                        <option value="{{ p.id }}"
+                        <option value="{{ p.id }}" data-dept="{{ p.department.id }}"
                             {% if recipe and recipe.finished_product.id == p.id %}selected{% endif %}>
                             {{ p.product_name }}
                         </option>
                         {% endfor %}
-
                     </select>
                 </div>
-
-                <!-- Department -->
-                <div>
-                    <label class="text-sm">Department</label>
-                    <select name="department"
-                        class="w-full border px-3 py-2 rounded-lg">
-
-                        <option value="">Select Department</option>
-
-                        {% for d in departments %}
-                        <option value="{{ d.id }}"
-                            {% if recipe and recipe.department.id == d.id %}selected{% endif %}>
-                            {{ d.name }}
-                        </option>
-                        {% endfor %}
-
-                    </select>
-                </div>
-
             </div>
 
             <!-- ================= TABLE ================= -->
-            <div class="overflow-x-auto mb-4">
+            <div class="overflow-x-auto mb-4 min-h-[300px]">
                 <table class="w-full border text-sm">
 
                     <thead class="bg-gray-200">
@@ -97,7 +100,7 @@
                                 <td class="p-2 border text-center">{{ forloop.counter }}</td>
 
                                 <td class="p-2 border">
-                                    <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+                                    <select name="item_type[]" class="w-full border px-2 py-1 rounded bg-gray-50 focus:ring-1 focus:ring-blue-400 outline-none">
 
                                         <option value="">Select Item</option>
 
@@ -143,7 +146,7 @@
                             <td class="p-2 border text-center">1</td>
 
                             <td class="p-2 border">
-                                <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+                                <select name="item_type[]" class="w-full border px-2 py-1 rounded bg-gray-50 focus:ring-1 focus:ring-blue-400 outline-none">
 
                                     <option value="">Select Item</option>
 
@@ -214,9 +217,14 @@
                     Delete
                 </button>
 
-                <button name="action" value="view"
-                    class="bg-blue-600 text-white px-5 py-2 rounded">
-                    View
+                <button name="action" value="view_detail"
+                    class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                    View Detail
+                </button>
+
+                <button name="action" value="view_all"
+                    class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+                    View All Recipe
                 </button>
 
                 <!-- 🔥 FIND (Product based) -->
@@ -244,7 +252,7 @@ function addRow() {
         <td class="p-2 border text-center">${rowCount}</td>
 
         <td class="p-2 border">
-            <select name="item_type[]" class="w-full border px-2 py-1 rounded">
+            <select name="item_type[]" class="w-full border px-2 py-1 rounded bg-gray-50 focus:ring-1 focus:ring-blue-400 outline-none">
 
                 <option value="">Select Item</option>
 
@@ -293,7 +301,67 @@ function calculateTotal() {
     document.getElementById("total").innerText = total + "%";
 }
 
-window.onload = calculateTotal;
+function updateDepartmentLogic() {
+    filterItemsByDept();
+    toggleFinishingProcess();
+}
+
+function filterItemsByDept() {
+    let deptSelect = document.getElementById("deptSelect");
+    let deptId = deptSelect.value;
+    let selectedOption = deptSelect.options[deptSelect.selectedIndex];
+    let deptName = selectedOption ? (selectedOption.getAttribute("data-name") || "").trim() : "";
+
+    let itemSelect = document.getElementById("itemSelect");
+    let options = itemSelect.querySelectorAll("option");
+
+    options.forEach(opt => {
+        if (opt.value === "") return; // Skip placeholder
+        let itemDept = opt.getAttribute("data-dept");
+        let itemName = opt.text.toUpperCase();
+        
+        let shouldShow = false;
+        if (deptId === "") {
+            shouldShow = true;
+        } else {
+            // Basic check: item must belong to the selected department
+            if (itemDept === deptId) {
+                if (deptName === "Knitting Finishing") {
+                    // Finishing dept products are usually without "GR"
+                    shouldShow = !itemName.includes("GR");
+                } else {
+                    shouldShow = true;
+                }
+            }
+        }
+
+        opt.style.display = shouldShow ? "block" : "none";
+    });
+    
+    // Reset selection if current item is now hidden
+    if (itemSelect.value !== "" && itemSelect.options[itemSelect.selectedIndex].style.display === "none") {
+        itemSelect.value = "";
+    }
+}
+
+function toggleFinishingProcess() {
+    let deptSelect = document.getElementById("deptSelect");
+    let finishingDiv = document.getElementById("finishingDiv");
+    if(!deptSelect || !finishingDiv) return;
+    
+    let selectedText = deptSelect.options[deptSelect.selectedIndex].text;
+    
+    if (selectedText.includes("Knitting Finishing")) {
+        finishingDiv.classList.remove("hidden");
+    } else {
+        finishingDiv.classList.add("hidden");
+    }
+}
+
+window.onload = function() {
+    calculateTotal();
+    updateDepartmentLogic();
+};
 
 </script>
 

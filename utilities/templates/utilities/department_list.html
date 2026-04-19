@@ -1,0 +1,51 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 bg-white shadow-xl rounded-xl p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Department List</h1>
+        <a href="{% url 'department_entry' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow">
+            + Add Department
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full border text-sm text-left">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+                <tr>
+                    <th class="p-3 border">ID</th>
+                    <th class="p-3 border">Department Name</th>
+                    <th class="p-3 border">Type</th>
+                    <th class="p-3 border">Created By</th>
+                    <th class="p-3 border text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dept in departments %}
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="p-3 border">{{ dept.id }}</td>
+                    <td class="p-3 border font-semibold text-blue-600">{{ dept.name }}</td>
+                    <td class="p-3 border">
+                        <span class="px-2 py-1 rounded text-xs {% if dept.department_type == 'Production' %}bg-green-100 text-green-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+                            {{ dept.department_type }}
+                        </span>
+                    </td>
+                    <td class="p-3 border text-gray-600">{{ dept.created_by.username }}</td>
+                    <td class="p-3 border text-center flex justify-center gap-3">
+                        <a href="{% url 'department_detail' dept.id %}" class="text-indigo-600 hover:underline">View Detail</a>
+                        <span class="text-gray-300">|</span>
+                        <a href="{% url 'department_entry' %}?edit={{ dept.id }}" class="text-green-600 hover:underline">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center p-6 text-gray-400">No departments found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-6 flex justify-center">
+        <a href="{% url 'department_entry' %}" class="bg-gray-800 text-white px-8 py-2 rounded shadow hover:bg-black transition">Back to Entry</a>
+    </div>
+</div>
+{% endblock %}

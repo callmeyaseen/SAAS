@@ -1,18 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Recipe Report</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+{% extends "layout/base.html" %}
 
-    <style>
-        @media print {
-            button { display: none; }
-        }
-    </style>
-</head>
-
-<body class="bg-gray-100 p-6">
+{% block content %}
 
 <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow">
 
@@ -23,6 +11,9 @@
             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
             Print
         </button>
+        <a href="{% url 'recipe_entry' %}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+            Create Recipe
+        </a>
     </div>
 
     <!-- TABLE -->
@@ -34,6 +25,7 @@
                     <th class="p-3 border">Voucher</th>
                     <th class="p-3 border">Product</th>
                     <th class="p-3 border">Department</th>
+                    <th class="p-3 border">Finishing Process</th>
                     <th class="p-3 border">Created By</th>
                     <th class="p-3 border">Details</th>
                 </tr>
@@ -56,6 +48,10 @@
                         {{ r.department }}
                     </td>
 
+                    <td class="p-3 border text-indigo-600 italic font-medium">
+                        {{ r.finishing_process|default:"-" }}
+                    </td>
+
                     <td class="p-3 border text-gray-600">
                         {{ r.created_by }}
                     </td>
@@ -64,7 +60,13 @@
                         <div class="space-y-1">
                             {% for i in r.items.all %}
                                 <div class="flex justify-between bg-gray-50 px-2 py-1 rounded">
-                                    <span>{{ i.yarn }}</span>
+                                    <span>
+                                        {% if i.yarn %}
+                                            {{ i.yarn.item_name }}
+                                        {% else %}
+                                            {{ i.product.product_name }}
+                                        {% endif %}
+                                    </span>
                                     <span class="text-blue-600 font-semibold">
                                         {{ i.percentage }}%
                                     </span>
@@ -89,5 +91,11 @@
 
 </div>
 
-</body>
-</html>
+<style>
+    @media print {
+        button, a, .sidebar, nav { display: none !important; }
+        .max-w-7xl { max-width: 100% !important; box-shadow: none !important; }
+    }
+</style>
+
+{% endblock %}

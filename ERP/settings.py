@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'utilities.apps.UtilitiesConfig',
     'inventory.apps.InventoryConfig',
     'sale',
+    'production',
 ]
 
 MIDDLEWARE = [

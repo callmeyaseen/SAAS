@@ -1,0 +1,118 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden mt-8 print:shadow-none print:mt-0 print:max-w-full">
+    <!-- Header -->
+    <div class="bg-gray-900 px-8 py-8 flex justify-between items-center print:bg-white print:border-b-2 print:border-black print:px-0">
+        <div>
+            <h1 class="text-4xl font-black text-white tracking-tighter print:text-black print:text-3xl uppercase">Recipe Card</h1>
+            <p class="text-gray-400 text-xs mt-1 font-bold tracking-widest uppercase print:text-gray-600">Quality Control Department</p>
+        </div>
+        <div class="flex gap-3 print:hidden">
+            <button onclick="window.print()" class="bg-indigo-600 text-white px-5 py-2 rounded-md font-bold shadow-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                <i data-feather="printer" class="w-4 h-4"></i>
+                Print
+            </button>
+            <a href="{% url 'recipe_entry' %}" class="bg-gray-200 text-gray-800 px-5 py-2 rounded-md font-bold hover:bg-gray-300 transition">
+                Back
+            </a>
+        </div>
+        <div class="hidden print:block text-right">
+            <p class="text-sm font-bold">Textile ERP System</p>
+            <p class="text-[10px] text-gray-500 italic">Document ID: {{ recipe.voucher_no }}</p>
+        </div>
+    </div>
+
+    <div class="p-8 print:p-0 print:mt-6">
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-gray-400 uppercase">Voucher No</span>
+                <p class="text-md font-bold text-gray-900">{{ recipe.voucher_no }}</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-gray-400 uppercase">Issue Date</span>
+                <p class="text-md font-semibold text-gray-800">{{ recipe.created_at|date:"d F, Y" }}</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-[10px] font-black text-gray-400 uppercase">Costing Center</span>
+                <p class="text-md font-bold text-indigo-600">{{ recipe.department.name }}</p>
+            </div>
+            <div class="col-span-2 md:col-span-3 space-y-1 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <span class="text-[10px] font-black text-indigo-400 uppercase">Target Finished Product</span>
+                <p class="text-2xl font-black text-gray-900 tracking-tight">{{ recipe.finished_product.product_name }}</p>
+            </div>
+            {% if recipe.finishing_process %}
+            <div class="col-span-2 md:col-span-3 space-y-1">
+                <span class="text-[10px] font-black text-pink-500 uppercase">Process Parameters</span>
+                <p class="text-sm font-medium text-gray-700 bg-pink-50/50 p-3 rounded-md border-l-4 border-pink-400 italic">
+                    {{ recipe.finishing_process }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Composition Table -->
+        <div class="mt-8">
+            <h3 class="text-xs font-black text-gray-900 uppercase mb-4 border-b-2 border-gray-900 pb-1 inline-block">Material Composition</h3>
+            <table class="w-full text-left border border-gray-200">
+                <thead>
+                    <tr class="bg-gray-900 text-white text-[10px] uppercase font-bold tracking-widest">
+                        <th class="px-4 py-2 border-r border-gray-700">Sr.</th>
+                        <th class="px-4 py-2 border-r border-gray-700">Item Description</th>
+                        <th class="px-4 py-2 border-r border-gray-700">Category</th>
+                        <th class="px-4 py-2 text-right">Mix Ratio (%)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for item in recipe.items.all %}
+                    <tr class="hover:bg-gray-50 transition text-sm">
+                        <td class="px-4 py-3 text-gray-500 font-bold border-r">{{ forloop.counter }}</td>
+                        <td class="px-4 py-3 border-r">
+                            <span class="font-bold text-gray-800">
+                                {% if item.yarn %}{{ item.yarn.item_name }}{% else %}{{ item.product.product_name }}{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 border-r">
+                            <span class="text-[10px] font-black uppercase {% if item.yarn %}text-yellow-600{% else %}text-blue-600{% endif %}">
+                                {% if item.yarn %}YARN{% else %}PRODUCT{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                            <span class="font-bold text-gray-900">{{ item.percentage|stringformat:".2f" }}%</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="bg-gray-50 text-gray-900 border-t-2 border-gray-900">
+                        <td colspan="3" class="px-4 py-3 text-right font-black uppercase text-xs tracking-widest">Consolidated Mix</td>
+                        <td class="px-4 py-3 text-right font-black text-lg">100.00%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Signatures (Professional Addition) -->
+        <div class="mt-20 grid grid-cols-3 gap-10 text-center print:mt-16">
+            <div class="border-t border-gray-400 pt-2 text-[10px] font-bold uppercase">Lab Chemist</div>
+            <div class="border-t border-gray-400 pt-2 text-[10px] font-bold uppercase">Plant Manager</div>
+            <div class="border-t border-gray-400 pt-2 text-[10px] font-bold uppercase">QA Head</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 pt-8 border-t flex justify-between items-center text-gray-400 italic text-[10px] uppercase">
+            <p>Prepared by: <span class="font-bold text-gray-600">{{ recipe.created_by.username }}</span></p>
+            <p>System Generated Report - {% now "d/m/Y H:i" %}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        /* Hide Sidebar by Class and any hidden menus */
+        .sidebar, button, a, nav, [id$="Menu"], [id$="Sub"] { display: none !important; }
+        .max-w-4xl { max-width: 100% !important; box-shadow: none !important; margin: 0 !important; }
+    }
+</style>
+{% endblock %}

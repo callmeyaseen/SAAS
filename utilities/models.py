@@ -26,7 +26,7 @@ class Department(models.Model):
         ('Stock', 'Stock'),
     ]
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     department_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -93,6 +93,7 @@ class Recipe(models.Model):
 
     finished_product = models.ForeignKey("Product", on_delete=models.CASCADE)
     department = models.ForeignKey("Department", on_delete=models.CASCADE)
+    finishing_process = models.CharField(max_length=255, blank=True, null=True)
 
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -107,10 +108,6 @@ class RecipeItem(models.Model):
     yarn = models.ForeignKey("Yarn", on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey("Product", on_delete=models.CASCADE, null=True, blank=True)
     percentage = models.FloatField()
-
-    class Meta:
-        # ❌ duplicate yarn in same recipe block
-        unique_together = ('recipe', 'yarn')
 
     def __str__(self):
         if self.yarn:
@@ -130,6 +127,7 @@ class Machine(models.Model):
 
     machine_code = models.CharField(max_length=50, unique=True)
     machine_name = models.CharField(max_length=100)
+    department = models.ForeignKey("Department", on_delete=models.CASCADE, null=True, blank=True)
     gauge = models.IntegerField()
     dia = models.IntegerField()
     machine_brand = models.CharField(max_length=100)
@@ -142,3 +140,6 @@ class Machine(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="machines_updated")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['machine_code', 'department']

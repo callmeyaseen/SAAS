@@ -14,17 +14,8 @@ def generate_sale_no():
 
 def sale_create(request):
 
-    allowed_departments = [
-        "Knitting Finishing",
-        "Stitching",
-        "Spinning",
-        "Covering",
-        "Glove",
-        "Flatknit"
-    ]
-
     products = Product.objects.filter(
-        department__name__in=allowed_departments
+        department__name="Knitting Finishing"
     )
     yarns = Yarn.objects.all()
 
@@ -37,7 +28,7 @@ def sale_create(request):
             return render(request, 'sale/sale_order_entry.html', {
                 'products': products,
                 'yarns': yarns,
-                'error': 'Please select product'
+                'error': 'Please select a valid product from Knitting Finishing'
             })
 
         product = Product.objects.get(id=item_id)

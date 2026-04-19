@@ -13,7 +13,7 @@
 <body class="bg-gray-100 flex">
 
 <!-- ================= SIDEBAR ================= -->
-<div class="w-64 bg-[#1e293b] text-white min-h-screen p-4 relative">
+<div class="sidebar w-64 bg-[#1e293b] text-white min-h-screen p-4 relative">
 
 <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
 <i data-feather="grid"></i> Textile ERP
@@ -52,10 +52,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="vendorsSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="/utilities/vendor-entry/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'vendor_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Vendor Entry
 </a>
-<a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'vendor_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> Vendor List
 </a>
 </div>
@@ -73,7 +73,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <a href="{% url 'machine' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i>Machine Entry
 </a>
-<a href="/utilities/vendor-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'machine_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> Machines List
 </a>
 </div>
@@ -186,10 +186,10 @@ class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 </a>
 
 <!-- List / Report -->
-<a href="{% url 'recipe_entry' %}?action=view" 
+<!-- <a href="{% url 'machine_list' %}?action=view" 
 class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> Recipe List
-</a>
+</a> -->
 
 </div>
 </div>
@@ -217,10 +217,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
             <i data-feather="chevron-right"></i>
         </button>
         <div id="mprSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-            <a href="{% url 'mpr_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="plus"></i> Entry
             </a>
-            <a href="{% url 'mpr_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="list"></i> List
             </a>
         </div>
@@ -251,14 +251,14 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="poSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="{% url 'po_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> PO List
 </a>
-<a href="{% url 'create_po' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Create PO
 </a>
 {% if perms.purchasing.can_approve_po %}
-<a href="{% url 'po_approval_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="check-square"></i> PO Approvals
 </a>
 {% endif %}
@@ -277,10 +277,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="grnSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="/purchasing/create-grn/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Entry
 </a>
-<a href="/purchasing/grn-list/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> List
 </a>
 </div>
@@ -310,7 +310,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
             <i data-feather="chevron-right"></i>
         </button>
         <div id="stockSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-            <a href="{% url 'stock_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="list"></i> Stock Report
             </a>
         </div>
@@ -357,6 +357,25 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 </div>
 </li>
+
+<!-- ================= Production ================= -->
+<li class="relative">
+<button onclick="toggleMenu('production')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="settings"></i> Production
+</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="productionMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+    <a href="#" 
+    class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+        <i data-feather="activity"></i> Production Planning
+    </a>
+</div>
+</li>
+
 <!-- CREATE USER -->
 {% if request.user.is_superuser %}
 <li>

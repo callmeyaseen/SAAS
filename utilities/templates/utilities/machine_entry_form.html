@@ -8,7 +8,21 @@
     Machine Entry Form
   </h2>
 
-  <form method="POST">
+  <!-- Messages -->
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="p-3 rounded text-white 
+          {% if message.tags == 'success' %} bg-green-500 
+          {% elif message.tags == 'error' %} bg-red-500 
+          {% else %} bg-blue-500 {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="POST" action="{% url 'machine_action' %}">
     {% csrf_token %}
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -18,6 +32,19 @@
         <input type="text" name="machine_code"
           value="{{ machine.machine_code|default:'' }}"
           class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="text-sm font-semibold text-blue-600">Department</label>
+        <select name="department" class="w-full border rounded px-3 py-2 bg-blue-50 focus:ring-2 focus:ring-blue-400">
+          <option value="">Select Department</option>
+          {% for dept in departments %}
+            <option value="{{ dept.id }}" 
+              {% if machine.department.id == dept.id %}selected{% endif %}>
+              {{ dept.name }}
+            </option>
+          {% endfor %}
+        </select>
       </div>
 
       <div>
@@ -77,7 +104,7 @@
           <option value="Wrist">Wrist Knitting</option>
         </select>
       </div>
-      <div class="text-sm font-semibold"">
+      <div class="text-sm font-semibold">
         <input type="checkbox" name="is_active"
           {% if machine and machine.is_active %}checked{% endif %}/>
         <span class="text-sm">Check For Active Machine & Uncheck For InActive Machine</span>
@@ -99,23 +126,30 @@
         class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
         Find
       </button>
-
-      <button type="reset"
+      <a href="{% url 'machine'%}">
+      <button type="button"
         class="bg-yellow-500 text-white px-4 py-2 rounded">
-        New
+        Refresh
       </button>
-      <button type="reset"
-        class="bg-blue-600 text-white px-4 py-2 rounded">
-        View
+      </a>
+      <button type="submit" name="action" value="view_detail"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        View Detail
       </button>
-      <button type="reset"
+      <button type="submit" name="action" value="view_all"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        View All Machines
+      </button>
+      <button type="submit" value="delete" name="action"
         class="bg-red-500 text-white px-4 py-2 rounded">
         Delete
       </button>
-      <button type="reset"
-        class="bg-gray-500 text-white px-4 py-2 rounded">
+      <a href="{% url 'home' %}">
+      <button type="button"
+        class="bg-gray-700 text-white px-6 py-2 rounded hover:bg-black transition">
         Exit
       </button>
+      </a>
 
     </div>
 
