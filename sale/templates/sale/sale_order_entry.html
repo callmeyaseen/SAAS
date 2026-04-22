@@ -129,31 +129,63 @@
         <input name="rate" value="{{ sale.rate|default:'' }}" class="w-full border rounded px-2 py-1">
       </div>
       <div class="lg:col-span-2">
-        <label class="text-xs font-bold text-pink-600 uppercase">Finishing Process</label>
+        <label class="text-xs font-bold text-blue-600 uppercase">Finishing Process</label>
         <input id="finishingProcess" name="finishing_process" value="{{ sale.finishing_process|default:'N/A' }}"
                class="w-full border rounded px-2 py-1 bg-gray-100 italic text-gray-600" readonly>
       </div>
       <div>
         <label class="text-xs font-semibold text-gray-600">Sample Status</label>
         <select name="sample_status" class="w-full border rounded px-2 py-1">
-          <option value="">Select</option>
-          <option {% if sale.sample_status == "Yes" %}selected{% endif %}>Yes</option>
-          <option {% if sale.sample_status == "No" %}selected{% endif %}>No</option>
+          <option value="Yes" {% if sale.sample_status == "Yes" %}selected{% endif %}>Yes</option>
+          <option value="No" {% if sale.sample_status == "No" %}selected{% endif %}>No</option>
         </select>
       </div>
-      <div class="lg:col-span-2">
+
+      <!-- MISSING FIELD: Cut Level -->
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Cut Level</label>
+        <input name="cut_level" value="{{ sale.cut_level|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+
+      <!-- MISSING FIELD: Received By -->
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Received By</label>
+        <input name="received_by" value="{{ sale.received_by|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+
+      <!-- MISSING FIELD: Shipment Location -->
+      <div class="lg:col-span-1">
         <label class="text-xs font-semibold text-gray-600">Shipment Location</label>
         <input name="shipment_location" value="{{ sale.shipment_location|default:'' }}" class="w-full border rounded px-2 py-1">
       </div>
 
-      <div class="lg:col-span-6">
+      <!-- MISSING FIELDS: Financials -->
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Payment Term</label>
+        <input name="payment_term" value="{{ sale.payment_term|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Price Order</label>
+        <input type="number" step="0.01" name="price_order" value="{{ sale.price_order|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Currency Type</label>
+        <input name="currency_type" value="{{ sale.currency_type|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-600">Currency Rate</label>
+        <input type="number" step="0.01" name="currency_rate" value="{{ sale.currency_rate|default:'' }}" class="w-full border rounded px-2 py-1">
+      </div>
+
+      <!-- Description -->
+      <div class="lg:col-span-full">
         <label class="text-xs font-semibold text-gray-500 uppercase">Description / Remarks</label>
         <textarea name="description" rows="1" class="w-full border rounded px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none transition">{{ sale.description|default:'' }}</textarea>
       </div>
 
     </div>
 
-    <!-- Action Buttons (Centered like Machine Entry) -->
+    <!-- Action Buttons -->
     <div class="mt-6 flex flex-wrap gap-4 justify-center border-t pt-4">
       <a href="{% url 'sale:sale_create' %}" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold transition">
         New Order

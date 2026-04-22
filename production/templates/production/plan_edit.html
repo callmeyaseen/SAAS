@@ -1,0 +1,75 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
+    <h2 class="text-2xl font-bold mb-6 border-b pb-2">Edit Production Plan: {{ plan.plan_no }}</h2>
+    
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Sale Order (Fixed)</label>
+                <input type="text" value="{{ plan.sale_order.sale_order_no }}" disabled class="w-full p-2 bg-gray-100 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Machine</label>
+                <select name="machine" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400">
+                    {% for machine in machines %}
+                        <option value="{{ machine.id }}" {% if plan.machine.id == machine.id %}selected{% endif %}>
+                            {{ machine.machine_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Planned Qty (Balance Update)</label>
+                <input type="number" step="any" name="planned_qty" value="{{ plan.planned_qty }}" required 
+                       class="w-full p-2 border rounded border-blue-300">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Plan Status</label>
+                <select name="status" class="w-full p-2 border rounded">
+                    <option value="Open" {% if plan.status == 'Open' %}selected{% endif %}>Open</option>
+                    <option value="Closed" {% if plan.status == 'Closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                <input type="date" name="start_date" value="{{ plan.start_date|date:'Y-m-d' }}" required class="w-full p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">End Date</label>
+                <input type="date" name="end_date" value="{{ plan.end_date|date:'Y-m-d' }}" required class="w-full p-2 border rounded">
+            </div>
+        </div>
+
+        <div class="p-3 bg-blue-50 rounded border border-blue-200">
+            <label class="block text-sm font-medium text-blue-800">Sale Order Status</label>
+            <select name="so_status" class="w-full p-2 border border-blue-300 rounded mt-1">
+                <option value="Open" {% if plan.sale_order.status == 'Open' %}selected{% endif %}>Keep SO Open</option>
+                <option value="Closed" {% if plan.sale_order.status == 'Closed' %}selected{% endif %}>Close Sale Order (Hide from List)</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Remarks</label>
+            <textarea name="remarks" rows="2" class="w-full p-2 border rounded">{{ plan.remarks }}</textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+            <a href="{% url 'production:plan_list' %}" class="px-4 py-2 text-gray-600 border rounded hover:bg-gray-100">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Update Plan
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

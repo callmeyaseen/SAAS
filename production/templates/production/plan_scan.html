@@ -1,0 +1,302 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">
+        <i data-feather="maximize" class="inline-block mr-2 text-blue-600"></i> Production Roll Scan
+    </h2>
+
+    <div class="space-y-6">
+        <!-- Step 1: Plan Search -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-600 mb-1">Search Machine Number (e.g. 001)</label>
+            <div class="flex gap-2">
+                <input type="text" id="plan_no_input" placeholder="Search Machine or Plan..." 
+                       class="flex-1 border p-3 rounded bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none uppercase font-mono">
+                <button type="button" onclick="fetchPlanInfo()" id="btn_find" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Find</button>
+            </div>
+        </div>
+        <input type="hidden" id="resolved_plan_no">
+
+        <!-- Step 1.5: Plan Selection (Shown only if multiple plans found) -->
+        <div id="plan_selection_container" class="hidden space-y-2 border-t pt-4">
+            <label class="block text-sm font-semibold text-gray-600">Multiple plans found. Please select one:</label>
+            <div id="plan_list_options" class="grid gap-2">
+                <!-- Selection buttons will be injected here -->
+            </div>
+        </div>
+
+        <!-- Plan Info Card (Hidden by default) -->
+        <div id="plan_card" class="hidden bg-blue-50 p-4 rounded border border-blue-200">
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <span class="text-gray-500 font-medium">Plan / Machine:</span>
+                <span id="disp_plan_mach" class="font-bold text-blue-800"></span>
+                
+                <span class="text-gray-500 font-medium">Article:</span>
+                <span id="disp_article" class="font-bold"></span>
+
+                <span class="text-gray-500 font-medium">Planned Qty:</span>
+                <span id="disp_planned" class="font-bold"></span>
+
+                <span class="text-gray-500 font-medium">Balance Qty:</span>
+                <span id="disp_balance" class="font-bold text-red-600"></span>
+            </div>
+        </div>
+
+        <!-- Step 2: Roll Entry -->
+        <div id="roll_form" class="hidden space-y-4 border-t pt-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Roll Number (Auto-Generated)</label>
+                <input type="text" id="auto_roll_no" readonly 
+                       class="w-full border p-3 rounded bg-gray-100 font-bold text-gray-700">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Roll Weight (KG)</label>
+                <input type="number" id="roll_weight" step="0.01" placeholder="0.00" 
+                       class="w-full border p-3 rounded text-2xl font-bold text-center focus:ring-2 focus:ring-green-400 outline-none border-green-300">
+            </div>
+
+            <button onclick="submitRoll()" class="w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
+                Save & Record Roll
+            </button>
+        </div>
+
+        <!-- Scanned Rolls List (Hidden by default) -->
+        <div id="scanned_rolls_list" class="hidden border-t pt-4 mt-6">
+            <h3 class="text-lg font-bold mb-3 text-gray-700">Scanned Rolls for this Plan</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Roll No</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight (KG)</th>
+                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rolls_table_body" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function fetchPlanInfo() {
+    const query = document.getElementById('plan_no_input').value.trim();
+    if (!query) return;
+
+    const btnFind = document.getElementById('btn_find');
+    btnFind.innerText = "Searching...";
+    
+    // 1. Pehle machine ke plans ki list mangwao
+    const listUrl = "{% url 'production:get_machine_plans' 'PLACEHOLDER' %}".replace('PLACEHOLDER', encodeURIComponent(query));
+
+    fetch(listUrl)
+        .then(res => res.json())
+        .then(data => {
+            btnFind.innerText = "Find";
+            if (data.plans.length === 0) {
+                alert("No active plans found for this input.");
+                hideForm();
+                hideSelection();
+            } else if (data.plans.length === 1) {
+                // Agar sirf aik plan hai to foran load karlo
+                hideSelection();
+                loadPlanDetails(data.plans[0].plan_no);
+            } else {
+                // Agar multiple hain to list dikhao
+                showSelection(data.plans);
+            }
+        })
+        .catch(err => console.error("Error:", err));
+}
+
+function loadPlanDetails(planNo) {
+    const detailUrl = "{% url 'production:get_next_roll' 'PLACEHOLDER' %}".replace('PLACEHOLDER', encodeURIComponent(planNo));
+    
+    fetch(detailUrl)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                hideForm();
+            } else {
+                document.getElementById('resolved_plan_no').value = data.plan_no;
+                document.getElementById('disp_plan_mach').innerText = `${data.plan_no} / ${data.machine}`;
+                document.getElementById('disp_article').innerText = data.article;
+                document.getElementById('disp_planned').innerText = data.planned_qty;
+                document.getElementById('disp_balance').innerText = data.balance;
+                document.getElementById('auto_roll_no').value = data.next_roll_no;
+                
+                document.getElementById('plan_card').classList.remove('hidden');
+                document.getElementById('roll_form').classList.remove('hidden');
+                document.getElementById('roll_weight').focus();
+                renderRollsList(data.rolls); // Display scanned rolls
+            }
+        });
+}
+
+function showSelection(plans) {
+    hideForm();
+    const container = document.getElementById('plan_selection_container');
+    const listDiv = document.getElementById('plan_list_options');
+    listDiv.innerHTML = '';
+    
+    plans.forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "w-full text-left p-3 border rounded hover:bg-blue-50 transition flex justify-between items-center bg-white shadow-sm";
+        btn.innerHTML = `
+            <div>
+                <span class="font-bold text-blue-700">${p.plan_no}</span>
+                <span class="text-xs text-gray-500 ml-2">Article: ${p.article}</span>
+            </div>
+            <span class="text-xs font-semibold bg-gray-100 px-2 py-1 rounded">Planned: ${p.planned_qty}</span>
+        `;
+        btn.onclick = () => {
+            loadPlanDetails(p.plan_no);
+            hideSelection();
+        };
+        listDiv.appendChild(btn);
+    });
+    
+    container.classList.remove('hidden');
+}
+
+function hideForm() {
+    // This function will also hide the rolls list
+    document.getElementById('plan_card').classList.add('hidden');
+    document.getElementById('roll_form').classList.add('hidden');
+    document.getElementById('scanned_rolls_list').classList.add('hidden');
+}
+
+function hideSelection() {
+    document.getElementById('plan_selection_container').classList.add('hidden');
+}
+
+function renderRollsList(rolls) {
+    const tbody = document.getElementById('rolls_table_body');
+    tbody.innerHTML = ''; // Clear previous rolls
+
+    if (rolls.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-gray-500">No rolls scanned yet for this plan.</td></tr>';
+    } else {
+        rolls.forEach(roll => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${roll.roll_no}</td>
+                <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-500">${roll.weight} KG</td>
+                <td class="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                    <button type="button" onclick="editRoll(${roll.id}, '${roll.roll_no}', ${roll.weight})" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                    <button type="button" onclick="deleteRoll(${roll.id})" class="text-red-600 hover:text-red-900 ml-2">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    document.getElementById('scanned_rolls_list').classList.remove('hidden');
+}
+
+function editRoll(rollId, currentNo, currentWeight) {
+    const newNo = prompt("Update Roll Number:", currentNo);
+    if (newNo === null) return;
+    
+    const newWeight = prompt("Update Weight (KG):", currentWeight);
+    if (newWeight === null) return;
+
+    const formData = new FormData();
+    formData.append('roll_no', newNo);
+    formData.append('weight', newWeight);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'production:roll_edit' 0 %}".replace('0', rollId), {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.message);
+            fetchPlanInfo(); // UI refresh karein taake naya balance aur number dikhe
+        }
+    })
+    .catch(err => alert("Error updating roll"));
+}
+
+function deleteRoll(rollId) {
+    if (!confirm("Are you sure you want to delete this roll?")) {
+        return;
+    }
+
+    fetch("{% url 'production:roll_delete' 0 %}".replace('0', rollId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            alert(data.message + " New Balance: " + data.balance);
+            fetchPlanInfo(); // Re-fetch all info including updated balance and rolls list
+        }
+    })
+    .catch(err => alert("Error deleting roll: " + err));
+}
+
+function submitRoll() {
+    const planNo = document.getElementById('resolved_plan_no').value;
+    const rollNo = document.getElementById('auto_roll_no').value;
+    const weight = document.getElementById('roll_weight').value;
+
+    if (!weight || weight <= 0) {
+        alert("Please enter a valid weight");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('plan_no', planNo);
+    formData.append('roll_no', rollNo);
+    formData.append('weight', weight);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'production:scan_roll' %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            // Use a more subtle notification or just alert
+            alert("Roll saved! New Balance: " + data.balance + " KG"); 
+            document.getElementById('roll_weight').value = '';
+            fetchPlanInfo(); // Agle roll number aur balance ke liye refresh karein
+        }
+    })
+    .catch(err => alert("Something went wrong!"));
+}
+
+// Enter key support
+document.getElementById('plan_no_input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') fetchPlanInfo();
+});
+document.getElementById('roll_weight').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { 
+        e.preventDefault(); 
+        submitRoll(); 
+    }
+});
+
+// 🔹 Typing pe khud hi search kare (Auto-Load)
+document.getElementById('plan_no_input').addEventListener('input', function(e) {
+    clearTimeout(this.delay);
+    this.delay = setTimeout(() => fetchPlanInfo(), 400);
+});
+
+feather.replace();
+</script>
+{% endblock %}

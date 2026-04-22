@@ -1,0 +1,93 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+
+    <h2 class="text-2xl font-bold mb-6">
+        Plan Detail - {{ plan.plan_no }}
+    </h2>
+
+    <div class="grid grid-cols-2 gap-4">
+
+        <div>
+            <label class="font-semibold">Sale Order:</label>
+            <p>{{ plan.sale_order.sale_order_no }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">Customer:</label>
+            <p>{{ plan.sale_order.customer_name }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">Machine:</label>
+            <p>{{ plan.machine.machine_name }} ({{ plan.machine.machine_code }})</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">Planned Qty:</label>
+            <p class="text-blue-600 font-bold text-lg">{{ plan.planned_qty }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">Start Date:</label>
+            <p>{{ plan.start_date }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">End Date:</label>
+            <p>{{ plan.end_date }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold">Status:</label>
+            <span class="px-2 py-1 rounded text-sm {% if plan.status == 'Open' %} bg-green-100 text-green-700 {% else %} bg-gray-200 text-gray-700 {% endif %}">
+                {{ plan.status }}
+            </span>
+        </div>
+
+        <div>
+            <label class="font-semibold">Fabric:</label>
+            <p>{{ plan.sale_order.product.product_name }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold text-gray-500">Width Type:</label>
+            <p>{{ plan.sale_order.fabric_width_type }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold text-gray-500">Fabric Width:</label>
+            <p>{{ plan.sale_order.fabric_width }}</p>
+        </div>
+
+        <div>
+            <label class="font-semibold text-gray-500">Finishing Route:</label>
+            <p>{{ plan.sale_order.finishing_process }}</p>
+        </div>
+
+    </div>
+
+    <div class="mt-6">
+        <label class="font-semibold">Remarks:</label>
+        <p class="border p-3 mt-2 bg-gray-50">
+            {{ plan.remarks }}
+        </p>
+    </div>
+
+    <div class="mt-6 flex gap-3">
+        <a href="{% url 'production:plan_list' %}" 
+           class="bg-gray-600 text-white px-4 py-2 rounded">
+           Back
+        </a>
+
+        <a href="{% url 'production:plan_delete' plan.id %}" 
+           class="bg-red-600 text-white px-4 py-2 rounded">
+           Delete
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

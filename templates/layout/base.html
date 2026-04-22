@@ -185,12 +185,6 @@ class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Entry
 </a>
 
-<!-- List / Report -->
-<!-- <a href="{% url 'machine_list' %}?action=view" 
-class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-<i data-feather="list"></i> Recipe List
-</a> -->
-
 </div>
 </div>
 
@@ -359,7 +353,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </li>
 
 <!-- ================= Production ================= -->
-<li class="relative">
+<!-- <li class="relative">
 <button onclick="toggleMenu('production')" 
 class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <span class="flex gap-2 items-center">
@@ -374,8 +368,52 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
         <i data-feather="activity"></i> Production Planning
     </a>
 </div>
-</li>
+</li> -->
 
+<!-- ================= PRODUCTION ================= -->
+<li class="relative">
+<button onclick="toggleMenu('production')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+<span class="flex gap-2 items-center">
+<i data-feather="settings"></i> Production
+</span>
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="productionMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+
+    <!-- Production Planning Sub -->
+    <div class="relative">
+        <button onclick="toggleSub(event,'planSub')" 
+        class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+            <span class="flex items-center gap-2">
+                <i data-feather="calendar"></i> Production Planning
+            </span>
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="planSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <a href="{% url 'production:plan_create' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="plus"></i> Create Plan
+            </a>
+
+            <a href="{% url 'production:plan_list' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="list"></i> Plan List
+            </a>
+
+            <a href="{% url 'production:plan_scan' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="maximize"></i> Scan Roll
+            </a>
+
+        </div>
+    </div>
+
+</div>
+</li>
 <!-- CREATE USER -->
 {% if request.user.is_superuser %}
 <li>

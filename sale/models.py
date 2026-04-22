@@ -41,6 +41,7 @@ class SaleOrder(models.Model):
     currency_rate = models.FloatField()
 
     description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, default="Open") # Open / Closed
 
     def clean(self):
         # ❗ validation: sirf ek select hona chahiye
