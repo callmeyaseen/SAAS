@@ -63,12 +63,13 @@ if 'RENDER' in os.environ:
     # Render (Online) settings
     DATABASES = {
         'default': dj_database_url.config(
-            default='postgres://saas_db_kh8v_user:XJ3JoIWfEIfyQrq8oME3yhn6HeUj2Oj2@dpg-d77u4unkijhs73fs9nlg-a.oregon-postgres.render.com/saas_db_kh8v',
-            conn_max_age=600
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True  # Ye line SSL error ko khatam kar degi
         )
     }
 else:
-    # Local Settings (SQLite use hoga)
+    # Local Settings (SQLite)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
