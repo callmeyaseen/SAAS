@@ -211,10 +211,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
             <i data-feather="chevron-right"></i>
         </button>
         <div id="mprSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="{% url 'mpr_entry' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="plus"></i> Entry
             </a>
-            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="{% url 'mpr_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="list"></i> List
             </a>
         </div>
@@ -245,14 +245,14 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="poSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'purchasing:po_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> PO List
 </a>
-<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'purchasing:create_po' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Create PO
 </a>
 {% if perms.purchasing.can_approve_po %}
-<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'purchasing:po_approval_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="check-square"></i> PO Approvals
 </a>
 {% endif %}
@@ -271,10 +271,10 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 </button>
 
 <div id="grnSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'purchasing:create_grn' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="plus"></i> Entry
 </a>
-<a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'purchasing:grn_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="list"></i> List
 </a>
 </div>
@@ -304,7 +304,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
             <i data-feather="chevron-right"></i>
         </button>
         <div id="stockSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
-            <a href="#" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+            <a href="{% url 'purchasing:stock_list' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="list"></i> Stock Report
             </a>
         </div>
@@ -351,24 +351,6 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
 </div>
 </li>
-
-<!-- ================= Production ================= -->
-<!-- <li class="relative">
-<button onclick="toggleMenu('production')" 
-class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
-<span class="flex gap-2 items-center">
-<i data-feather="settings"></i> Production
-</span>
-<i data-feather="chevron-right"></i>
-</button>
-
-<div id="productionMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
-    <a href="#" 
-    class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-        <i data-feather="activity"></i> Production Planning
-    </a>
-</div>
-</li> -->
 
 <!-- ================= PRODUCTION ================= -->
 <li class="relative">
@@ -417,7 +399,7 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <!-- CREATE USER -->
 {% if request.user.is_superuser %}
 <li>
-<a href="/accounts/create-user/" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<a href="{% url 'create_user' %}" class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 <i data-feather="user-plus"></i> Create User
 </a>
 </li>

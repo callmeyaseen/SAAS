@@ -5,7 +5,7 @@
 
 <h2 class="text-xl font-bold mb-4">Purchase Orders</h2>
 
-<a href="{% url 'create_po' %}"
+<a href="{% url 'purchasing:create_po' %}"
 class="bg-blue-600 text-white px-4 py-2 rounded mb-4 inline-block">
 
 Create PO
@@ -56,7 +56,7 @@ Create PO
 <td class="border p-2">
 
 <a
-href="{% url 'po_detail' po.id %}"
+href="{% url 'purchasing:po_detail' po.id %}"
 class="text-blue-600">
 
 View

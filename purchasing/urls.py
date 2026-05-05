@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+
+app_name = 'purchasing'
+
 urlpatterns = [
     path('', views.po_list, name='po_list'),
     path('create/', views.create_po, name='create_po'),

@@ -31,7 +31,7 @@
 <td class="border p-2 flex gap-2">
 
 <a
-href="{% url 'approve_po' po.id %}"
+href="{% url 'purchasing:approve_po' po.id %}"
 class="bg-green-600 text-white px-3 py-1 rounded">
 
 Approve
@@ -40,7 +40,7 @@ Approve
 
 <form
 method="POST"
-action="{% url 'reject_po' po.id %}">
+action="{% url 'purchasing:reject_po' po.id %}">
 
 {% csrf_token %}
 

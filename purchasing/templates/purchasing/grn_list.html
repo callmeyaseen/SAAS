@@ -33,13 +33,13 @@
 <td class="border p-2 flex gap-2">
 
     <!-- VIEW -->
-    <a href="{% url 'grn_detail' grn.id %}"
+    <a href="{% url 'purchasing:grn_detail' grn.id %}"
        class="bg-blue-600 text-white px-3 py-1 rounded">
         View
     </a>
 
     <!-- DELETE -->
-    <form method="POST" action="{% url 'grn_delete' grn.id %}">
+    <form method="POST" action="{% url 'purchasing:grn_delete' grn.id %}">
         {% csrf_token %}
         <button type="submit"
             onclick="return confirm('Delete this GRN?')"
