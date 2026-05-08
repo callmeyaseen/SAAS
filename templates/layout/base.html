@@ -188,6 +188,31 @@ class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
 </div>
 </div>
 
+<!-- 🔥 Customer (NEW PROFESSIONAL ADD) -->
+<div class="relative">
+<button onclick="toggleSub(event,'customerSub')" 
+class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+
+<span class="flex gap-2 items-center">
+<i data-feather="layers"></i> Customer
+</span>
+
+<i data-feather="chevron-right"></i>
+</button>
+
+<div id="customerSub" 
+class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2">
+
+<!-- Entry -->
+<a href="{% url 'customer_entry' %}" 
+class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+<i data-feather="plus"></i> Customer Entry
+</a>
+
+</div>
+</div>
+
+
 </div>
 </li>
 <!-- ================= INVENTORY ================= -->

@@ -924,3 +924,11 @@ def machine_list(request):
 def machine_detail(request, code):
     machine = get_object_or_404(Machine, machine_code=code)
     return render(request, "utilities/machine_detail.html", {"machine": machine})
+
+
+# =========================
+# 📋 Customer Entry
+# =========================
+
+def customer_entry(request):
+    return render(request, "utilities/customer_entry.html")

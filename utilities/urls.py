@@ -20,4 +20,5 @@ urlpatterns = [
     path("machine/action/", views.machine_action, name="machine_action"),
     path('machine-list/', views.machine_list, name='machine_list'),
     path('machine/detail/<str:code>/', views.machine_detail, name='machine_detail'),
+    path("customer-entry/", views.customer_entry, name="customer_entry"),
 ]
