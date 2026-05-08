@@ -6,7 +6,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY SETTINGS
-SECRET_KEY = 'django-insecure-5n9)y(u3g%8i2h&zska##(7f-rzyqnmm)#b_e@ryazy#izd^vp'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = 'RENDER' not in os.environ # Deployment ke baad isay False karein
 ALLOWED_HOSTS = ['*']
 
