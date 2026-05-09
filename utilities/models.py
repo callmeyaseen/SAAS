@@ -143,3 +143,44 @@ class Machine(models.Model):
 
     class Meta:
         unique_together = ['machine_code', 'department']
+        
+        
+# ================= Customer Model =================
+class Customer(models.Model):
+
+    CUSTOMER_TYPE = (
+        ('Local', 'Local'),
+        ('Export', 'Export'),
+    )
+
+    customer_id = models.CharField(max_length=20,unique=True)
+    customer_name = models.CharField(max_length=100, blank=False, null=False)
+    phone_number = models.CharField(max_length=15, blank=False, null=False)
+    email = models.EmailField(blank=False, null=False)
+    customer_type = models.CharField(max_length=10,choices=CUSTOMER_TYPE)
+    address = models.TextField(blank=False, null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, related_name='customer_created_by')
+    updated_by = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, related_name='customer_updated_by')
+
+    # ================= Auto Generate Customer ID =================
+    def save(self, *args, **kwargs):
+
+        if not self.customer_id:
+
+            last_customer = Customer.objects.order_by('-id').first()
+
+            if last_customer:
+
+                last_id = int(last_customer.customer_id[4:])
+                new_id = last_id + 1
+
+            else:
+                new_id = 1
+
+            self.customer_id = f"CUST{new_id:04d}"
+
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.customer_id} - {self.customer_name}"

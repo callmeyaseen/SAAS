@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse
+from decimal import Decimal
 
 from inventory.models import MPR
 from utilities.models import Vendor , Rack
@@ -93,7 +94,7 @@ def create_po(request):
                         item=item.item,
                         mpr_quantity=item.quantity,
                         quantity=qty,
-                        rate=rate
+                        rate=float(rate)
                     )
 
             messages.success(request, "Purchase Order Created Successfully")
@@ -140,8 +141,8 @@ def update_po(request, pk):
             rate = request.POST.get(f"rate_{item.id}")
 
             if qty and rate:
-                item.quantity = qty
-                item.rate = rate
+                item.quantity = float(qty)
+                item.rate = float(rate)
                 item.save()
 
         messages.success(request, "PO Updated Successfully")
@@ -295,7 +296,7 @@ def create_grn(request):
                 item=po_item.item,
                 po_qty=pqty,
                 received_qty=rqty,
-                rate=rate,
+                rate=Decimal(rate) if rate else None,
                 rack_id=rack_id   # 🔥 FK shortcut
             )
 

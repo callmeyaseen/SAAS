@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from inventory.models import Yarn
+from utilities.models import Yarn
 from utilities.models import Rack, Vendor
 
 

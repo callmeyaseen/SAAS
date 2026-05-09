@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from django.http import HttpResponse, HttpResponseForbidden
-from .models import Department, Machine, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem
+from .models import Department, Machine, Product, Rack, Recipe, RecipeItem, Vendor, Yarn ,Recipe, RecipeItem, Customer
 from security.utils import get_permission
 from django.contrib.auth.models import User
 from datetime import date
@@ -930,5 +930,112 @@ def machine_detail(request, code):
 # 📋 Customer Entry
 # =========================
 
+# ================= Customer Entry Page =================
+@login_required
 def customer_entry(request):
-    return render(request, "utilities/customer_entry.html")
+
+    customers = Customer.objects.all().order_by('-id')
+
+    context = {
+        'customers': customers
+    }
+
+    return render(request, 'utilities/customer_entry.html', context)
+
+
+# ================= Save Customer =================
+@login_required
+def save_customer(request):
+
+    if request.method == "POST":
+
+        customer = Customer.objects.create(
+
+            customer_name=request.POST.get('customer_name'),
+            phone_number=request.POST.get('phone_number'),
+            email=request.POST.get('email'),
+            customer_type=request.POST.get('customer_type'),
+            address=request.POST.get('address'),
+            created_by=request.user,
+            updated_by=request.user
+
+        )
+
+        messages.success(
+            request,
+            f'Customer Saved Successfully ({customer.customer_id})'
+        )
+
+        return redirect('customer_entry')
+# ================= Find Customer =================
+@login_required
+def find_customer(request):
+
+    if request.method == "POST":
+
+        customer_id = request.POST.get('customer_id')
+
+        customer = Customer.objects.filter(
+            customer_id=customer_id
+        ).first()
+
+        customers = Customer.objects.all().order_by('-id')
+
+        context = {
+            'customer': customer,
+            'customers': customers
+        }
+
+        return render(request, 'utilities/customer_entry.html', context)
+
+
+# ================= View Customer =================
+@login_required
+def view_customer(request, id):
+
+    customer = get_object_or_404(Customer, id=id)
+
+    customers = Customer.objects.all().order_by('-id')
+
+    context = {
+        'customer': customer,
+        'customers': customers
+    }
+
+    return render(request, 'utilities/customer_entry.html', context)
+
+
+# ================= Update Customer =================
+@login_required
+def update_customer(request, id):
+
+    customer = get_object_or_404(Customer, id=id)
+
+    if request.method == "POST":
+
+        customer.customer_name = request.POST.get('customer_name')
+        customer.phone_number = request.POST.get('phone_number')
+        customer.email = request.POST.get('email')
+        customer.customer_type = request.POST.get('customer_type')
+        customer.address = request.POST.get('address')
+
+        customer.updated_by = request.user
+
+        customer.save()
+
+        messages.success(request, 'Customer Updated Successfully')
+
+        return redirect('customer_entry')
+
+
+# ================= Delete Customer =================
+@login_required
+def delete_customer(request, id):
+
+    customer = get_object_or_404(Customer, id=id)
+
+    customer.delete()
+
+    messages.success(request, 'Customer Deleted Successfully')
+
+    return redirect('customer_entry')

@@ -33,21 +33,25 @@ def create_user(request):
 
 from django.contrib.auth import authenticate, login, logout
 
-# def user_login(request):
+def user_login(request):
 
-#     if request.method == "POST":
-#         username = request.POST.get("username")
-#         password = request.POST.get("password")
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
-#         user = authenticate(username=username, password=password)
+        user = authenticate(username=username, password=password)
 
-#         if user is not None:
-#             login(request, user)
-#             # return redirect("/utilities/vendor-entry/")
-#         else:
-#             messages.error(request, "Invalid username or password")
+        if user is not None:
+            login(request, user)
+            return redirect("home")
+        else:
+            messages.error(request, "Invalid username or password")
 
-#     return render(request, "accounts/login.html")
+    return render(request, "accounts/login.html")
+
+def user_logout(request):
+    logout(request)
+    return redirect("user_login")
 def user_login(request):
 
     if request.method == "POST":

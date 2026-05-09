@@ -21,4 +21,17 @@ urlpatterns = [
     path('machine-list/', views.machine_list, name='machine_list'),
     path('machine/detail/<str:code>/', views.machine_detail, name='machine_detail'),
     path("customer-entry/", views.customer_entry, name="customer_entry"),
+    # Customer URL
+    path('customer-entry/',views.customer_entry,name='customer_entry'),
+
+    path('save-customer/',views.save_customer,name='save_customer'),
+
+    path('find-customer/',views.find_customer,name='find_customer'),
+
+    path('view-customer/<int:id>/',views.view_customer,name='view_customer'),
+
+    path('update-customer/<int:id>/',views.update_customer,name='update_customer'),
+
+    path('delete-customer/<int:id>/',views.delete_customer,name='delete_customer'),
+
 ]
