@@ -52,20 +52,18 @@
 
         <div><strong>Quantity:</strong> {{ sale.order_qty }}</div>
 
-        <div><strong>Unit:</strong> {{ sale.unit }}</div>
+        <div><strong>Unit:</strong> {{ sale.rate_per_unit }}</div>
         <div><strong>Fabric Width:</strong> {{ sale.fabric_width }}</div>
 
         <div><strong>Shipment:</strong> {{ sale.shipment_location }}</div>
-        <div><strong>Delivery Date:</strong> {{ sale.delivery_date }}</div>
+        <div><strong>Start Delivery Date:</strong> {{ sale.start_delivery_date }}</div>
+        <div><strong>End Delivery Date:</strong> {{ sale.end_delivery_date }}</div>
 
         <div><strong>Order Type:</strong> {{ sale.order_type }}</div>
         <div><strong>Payment Term:</strong> {{ sale.payment_term }}</div>
 
-        <div><strong>Price:</strong> {{ sale.price_order }}</div>
-        <div><strong>Rate:</strong> {{ sale.rate }}</div>
-
-        <div><strong>Currency:</strong> {{ sale.currency_type }}</div>
-        <div><strong>Currency Rate:</strong> {{ sale.currency_rate }}</div>
+        <div><strong>Rate Per Unit:</strong> {{ sale.rate_per_unit }}</div>
+        <div><strong>Total Order Price:</strong> {{ sale.total_price_order }}</div>
 
         <!-- Description -->
         <div class="md:col-span-2">
