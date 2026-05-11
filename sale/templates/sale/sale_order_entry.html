@@ -38,6 +38,7 @@
       <div>
         <label class="text-xs font-semibold text-blue-600 uppercase">Category</label>
         <select name="category" class="w-full border rounded px-2 py-1 bg-blue-50 focus:ring-2 focus:ring-blue-400">
+          <option value="">Select Category</option>
           <option value="Local" {% if sale.category == "Local" %}selected{% endif %}>Local</option>
           <option value="Export" {% if sale.category == "Export" %}selected{% endif %}>Export</option>
         </select>
@@ -45,7 +46,16 @@
 
       <div>
         <label class="text-xs font-semibold text-gray-600">Customer Name</label>
-        <input name="customer_name" value="{{ sale.customer_name|default:'' }}" class="w-full border rounded px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none">
+        <!-- <input name="customer_name" value="{{ sale.customer_name|default:'' }}" class="w-full border rounded px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none"> -->
+     <select name="customer" name="category" class="w-full border rounded px-2 py-1 bg-blue-50 focus:ring-2 focus:ring-blue-400">
+    <option value="">Select Customer</option>
+
+    {% for customer in customers %}
+    <option value="{{ customer.id }}">
+        {{ customer.customer_name }}
+    </option>
+    {% endfor %}
+</select>
       </div>
 
       <div>

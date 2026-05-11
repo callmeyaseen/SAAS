@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import SaleOrder
-from utilities.models import Product, Yarn
+from utilities.models import Customer, Product, Yarn
 
 def generate_sale_no():
     
@@ -17,21 +17,26 @@ def sale_create(request):
     products = Product.objects.filter(
         department__name="Knitting Finishing"
     )
+
     yarns = Yarn.objects.all()
+    customers = Customer.objects.all()
 
     if request.method == "POST":
 
-        item_type = request.POST.get('item_type') # "product" or "yarn"
+        item_type = request.POST.get('item_type')
         item_id = request.POST.get('item')
 
-        if not item_id:
-            return render(request, 'sale/sale_order_entry.html', {
-                'products': products,
-                'yarns': yarns,
-                'error': 'Please select a valid product from Knitting Finishing'
-            })
+        customer_id = request.POST.get('customer')
+        customer = Customer.objects.get(id=customer_id)
 
-        product = Product.objects.get(id=item_id)
+        product = None
+        yarn = None
+
+        if item_type == "product":
+            product = Product.objects.get(id=item_id)
+
+        elif item_type == "yarn":
+            yarn = Yarn.objects.get(id=item_id)
 
         SaleOrder.objects.create(
             sale_order_no=generate_sale_no(),
@@ -39,9 +44,10 @@ def sale_create(request):
             customer_po_no=request.POST.get('customer_po_no'),
             customer_po_date=request.POST.get('customer_po_date'),
             category=request.POST.get('category'),
-            customer_name=request.POST.get('customer_name'),
 
+            customer=customer,
             product=product,
+            yarn=yarn,
 
             order_qty=request.POST.get('order_qty'),
             fabric_width_type=request.POST.get('fabric_width_type'),
@@ -64,7 +70,11 @@ def sale_create(request):
 
         return redirect('sale:sale_list')
 
-    return render(request, 'sale/sale_order_entry.html', {'products': products, 'yarns': yarns})
+    return render(request, 'sale/sale_order_entry.html', {
+        'products': products,
+        'yarns': yarns,
+        'customers': customers
+    })
 # LIST
 def sale_list(request):
     sales = SaleOrder.objects.all().order_by('-id')
