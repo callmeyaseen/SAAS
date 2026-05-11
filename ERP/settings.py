@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = 'RENDER' not in os.environ # Deployment ke baad isay False karein
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['True']
 
 # Application definition
 INSTALLED_APPS = [
