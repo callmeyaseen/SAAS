@@ -1,0 +1,145 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="w-full bg-white border border-gray-400 shadow-md">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center border-b border-yellow-400 p-3 bg-red-600">
+    <h2 class="text-xl font-bold text-white">Work Order Details</h2>
+    <div class="flex gap-2">
+      <a href="{% url 'production:wo_list' %}" class="flex items-center gap-1 text-sm bg-white hover:bg-gray-200 px-3 py-1 rounded text-black">
+        ← Back to List
+      </a>
+      <a href="{% url 'production:create_wo' %}" class="flex items-center gap-1 text-sm bg-white hover:bg-gray-200 px-3 py-1 rounded text-black">
+        ← Back to WO
+      </a>
+      <button onclick="window.print()" class="flex items-center gap-1 text-sm hover:bg-gray-200 px-2 py-1 rounded">
+        🖨️ <span>Print</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Work Order Summary -->
+  <div class="p-4 bg-blue-50 border-b border-gray-300">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="border border-gray-300 p-3 rounded bg-white">
+        <label class="text-xs font-semibold text-gray-600">Work Order No</label>
+        <p class="text-lg font-bold text-blue-700">{{ work_order.work_order_no }}</p>
+      </div>
+      <div class="border border-gray-300 p-3 rounded bg-white">
+        <label class="text-xs font-semibold text-gray-600">Status</label>
+        <p class="text-lg font-bold {% if work_order.status == 'Completed' %}text-green-700{% elif work_order.status == 'In Progress' %}text-yellow-700{% else %}text-gray-700{% endif %}">{{ work_order.status }}</p>
+      </div>
+      <div class="border border-gray-300 p-3 rounded bg-white">
+        <label class="text-xs font-semibold text-gray-600">WO Date</label>
+        <p class="text-lg font-bold">{{ work_order.work_order_date|date:'Y-m-d' }}</p>
+      </div>
+      <div class="border border-gray-300 p-3 rounded bg-white">
+        <label class="text-xs font-semibold text-gray-600">Created By</label>
+        <p class="text-lg font-bold">{{ work_order.created_by.first_name|default:work_order.created_by.username }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="p-4 space-y-4">
+
+    <!-- Sale Order & Customer Section -->
+    <div class="border border-gray-300 rounded p-4 bg-gray-50">
+      <h3 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">Sale Order & Customer Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Sale Order No</label>
+          <p class="text-base font-semibold">{{ work_order.sale_order.sale_order_no }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Customer</label>
+          <p class="text-base font-semibold">{{ work_order.customer.customer_name|default:'N/A' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Order Qty</label>
+          <p class="text-base font-semibold">{{ work_order.order_qty }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Delivery Date</label>
+          <p class="text-base font-semibold">{{ work_order.start_delivery_date|date:'Y-m-d'|default:'N/A' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product & Recipe Section -->
+    <div class="border border-gray-300 rounded p-4 bg-gray-50">
+      <h3 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">Product & Recipe Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Order Product</label>
+          <p class="text-base font-semibold">{{ work_order.order_product.product_name|default:'N/A' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Produced Product</label>
+          <p class="text-base font-semibold">{{ work_order.produced_product.product_name|default:'N/A' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Recipe</label>
+          <p class="text-base font-semibold">{{ work_order.recipe.voucher_no|default:'N/A' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Yarn</label>
+          <p class="text-base font-semibold">{{ work_order.yarn.item_name|default:'N/A' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Department</label>
+          <p class="text-base font-semibold">{{ work_order.department.name|default:'N/A' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Work Order Items Section -->
+    <div class="border border-gray-300 rounded p-4 bg-gray-50">
+      <h3 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">Work Order Items</h3>
+      {% if wo_items %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="border border-gray-300 px-3 py-2 text-left">Item Name</th>
+              <th class="border border-gray-300 px-3 py-2 text-center">Unit Qty</th>
+              <th class="border border-gray-300 px-3 py-2 text-center">Required Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in wo_items %}
+            <tr class="border-t">
+              <td class="border border-gray-300 px-3 py-2">
+                {% if item.yarn %}{{ item.yarn.item_name }}{% elif item.product %}{{ item.product.product_name }}{% else %}Item{% endif %}
+              </td>
+              <td class="border border-gray-300 px-3 py-2 text-center">{{ item.unit_qty }}</td>
+              <td class="border border-gray-300 px-3 py-2 text-center">{{ item.required_qty }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-center text-gray-500 py-4">No items created yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- Additional Information -->
+    <div class="border border-gray-300 rounded p-4 bg-gray-50">
+      <h3 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">Additional Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Created At</label>
+          <p class="text-base">{{ work_order.created_at|date:'Y-m-d H:i' }}</p>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">WO Date</label>
+          <p class="text-base">{{ work_order.work_order_date|date:'Y-m-d' }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import ProductionPlan, ProductionRoll
+from .models import ProductionPlan, ProductionRoll, WorkOrder # Added WorkOrder
 from sale.models import SaleOrder
-from utilities.models import Machine
+from utilities.models import Machine, Product, Department, Recipe # Added Product, Department, Recipe
+from django.contrib.auth.models import User # Added User for created_by
 from django.http import JsonResponse
 from django.db.models import Sum, Q
 from django.db import transaction
@@ -16,18 +17,147 @@ def generate_plan_no():
 
 def get_so_details(request, pk):
     so = get_object_or_404(SaleOrder, pk=pk)
+    target_dept_id = request.GET.get('dept_id')
+
+    # Determine the starting product/recipe from Sale Order
+    main_product = so.product
+    if not main_product and so.yarn:
+        # If SO is for Yarn, find the Product proxy to get its recipe
+        main_product = Product.objects.filter(product_name__iexact=so.yarn.item_name).first()
+
+    main_recipe = Recipe.objects.filter(finished_product=main_product).first()
+
+    # Initialize target as the main item
+    target_product = main_product
+    display_recipe = main_recipe
+
+    if target_dept_id:
+        # Recursive function to find the recipe belonging to the target department
+        def find_recipe_recursive(current_recipe, dept_id, visited=None):
+            if not current_recipe: return None
+            if visited is None: visited = set()
+            if current_recipe.id in visited: return None
+            visited.add(current_recipe.id)
+
+            # 1. Check items in current recipe for a direct match in target department
+            for item in current_recipe.items.all():
+                comp_p = None
+                if item.product:
+                    comp_p = item.product
+                elif item.yarn:
+                    # Find Product proxy for this yarn in the target department
+                    comp_p = Product.objects.filter(product_name__iexact=item.yarn.item_name.strip(), department_id=dept_id).first()
+                    if not comp_p: # Fallback: search any product with this name to check its recipes later
+                        comp_p = Product.objects.filter(product_name__iexact=item.yarn.item_name.strip()).first()
+
+                if comp_p:
+                    # Check if this component has a recipe in the target department
+                    target_r = Recipe.objects.filter(finished_product=comp_p, department_id=dept_id).first()
+                    if target_r:
+                        return (comp_p, target_r)
+                    
+                    # If product belongs to dept but has no specific dept-recipe, check its main recipe
+                    if str(comp_p.department_id) == str(dept_id):
+                        target_r = Recipe.objects.filter(finished_product=comp_p).first()
+                        if target_r: return (comp_p, target_r)
+
+            # 2. If no direct match, recurse into sub-recipes of all components
+            for item in current_recipe.items.all():
+                sub_p = item.product
+                if not sub_p and item.yarn:
+                    sub_p = Product.objects.filter(product_name__iexact=item.yarn.item_name.strip()).first()
+                
+                if sub_p:
+                    sub_r = Recipe.objects.filter(finished_product=sub_p).first()
+                    result = find_recipe_recursive(sub_r, dept_id, visited)
+                    if result: return result
+            return None
+
+        # Start search: prioritize main product recipe in target dept, then go recursive
+        dept_recipe = Recipe.objects.filter(finished_product=main_product, department_id=target_dept_id).first()
+        if dept_recipe:
+            display_recipe = dept_recipe
+        else:
+            search_result = find_recipe_recursive(main_recipe, target_dept_id)
+            if search_result:
+                target_product, display_recipe = search_result
+            elif main_product and str(main_product.department_id) != str(target_dept_id):
+                display_recipe = None
+
     # Calculate total planned qty so far for this order
-    already_planned = ProductionPlan.objects.filter(sale_order=so).aggregate(total=Sum('planned_qty'))['total'] or 0
+    already_planned = ProductionPlan.objects.filter(work_order__sale_order=so).aggregate(total_planned=Sum('planned_qty'))['total_planned'] or 0
     balance = so.order_qty - already_planned
     
+    recipe_items_data = []
+    if display_recipe:
+        for item in display_recipe.items.all():
+            item_name = ""
+            if item.product:
+                item_name = item.product.product_name
+            elif item.yarn:
+                item_name = item.yarn.item_name
+            
+            recipe_items_data.append({
+                'item_name': item_name,
+                'percentage': item.percentage,
+            })
+
+    # Resolve original department info
+    if so.product and so.product.department:
+        product_department_name = so.product.department.name
+        product_department_id = so.product.department.id
+    elif so.yarn:
+        yp = Product.objects.filter(product_name__iexact=so.yarn.item_name).first()
+        product_department_name = yp.department.name if yp and yp.department else "N/A"
+        product_department_id = yp.department.id if yp and yp.department else None
+    else:
+        product_department_name = "N/A"
+        product_department_id = None
+
     return JsonResponse({
         'order_qty': so.order_qty,
         'balance_qty': max(0, balance),
+        'customer': so.customer.customer_name if so.customer else "N/A",
+        'delivery_date': so.end_delivery_date.strftime('%Y-%m-%d') if so.end_delivery_date else "",
+        'product_name': so.product.product_name if so.product else "N/A",
+        'recipe_name': display_recipe.voucher_no if display_recipe else "No Recipe Found",
+        'order_recipe_name': main_recipe.voucher_no if main_recipe else "No Recipe Found",
+        'produced_item_name': target_product.product_name if target_product else "N/A",
+        'produced_recipe_name': display_recipe.voucher_no if display_recipe else "No Recipe Found",
+        'product_department_name': product_department_name,
+        'product_department_id': product_department_id,
         'width_type': so.fabric_width_type,
         'width': so.fabric_width,
         'finishing': so.finishing_process,
         'status': so.status,
-        'running_on': ProductionPlan.objects.filter(sale_order=so, status="Open").count()
+        'running_on': ProductionPlan.objects.filter(work_order__sale_order=so, status="Open").count(),
+        'recipe_items': recipe_items_data,
+    })
+
+def get_wo_details(request, pk):
+    """AJAX view to get details of a specific Work Order for planning."""
+    wo = get_object_or_404(WorkOrder, pk=pk)
+    so = wo.sale_order
+    
+    # Calculate balance based on this specific Work Order
+    already_planned = ProductionPlan.objects.filter(work_order=wo).aggregate(total=Sum('planned_qty'))['total'] or 0
+    balance = wo.order_qty - already_planned
+    
+    return JsonResponse({
+        'order_no': wo.work_order_no,
+        'sale_order_no': so.sale_order_no,
+        'customer': wo.customer.customer_name if wo.customer else "N/A",
+        'product_name': wo.produced_product.product_name if wo.produced_product else "N/A",
+        'department': wo.department.name if wo.department else "N/A",
+        'order_qty': wo.order_qty,
+        'balance_qty': max(0, balance),
+        'delivery_date': wo.start_delivery_date.strftime('%Y-%m-%d') if wo.start_delivery_date else "",
+        'recipe_name': wo.recipe.voucher_no if wo.recipe else "No Recipe",
+        'status': wo.status,
+        'width_type': so.fabric_width_type,
+        'width': so.fabric_width,
+        'finishing': so.finishing_process,
+        'running_on': ProductionPlan.objects.filter(work_order=wo, status="Open").count(),
     })
 
 def get_machine_load(request):
@@ -42,7 +172,7 @@ def get_machine_load(request):
         return JsonResponse({'error': 'Machine not found'}, status=404)
         
     # Get all open plans for this machine and annotate with total scanned weight
-    plans = ProductionPlan.objects.filter(machine=machine, status="Open").select_related('sale_order', 'sale_order__product').annotate(
+    plans = ProductionPlan.objects.filter(machine=machine, status="Open").select_related('work_order', 'work_order__produced_product').annotate(
         total_scanned=Sum('rolls__weight')
     )
     
@@ -51,8 +181,8 @@ def get_machine_load(request):
         scanned = p.total_scanned or 0
         load_data.append({
             'plan_no': p.plan_no,
-            'order_no': p.sale_order.sale_order_no,
-            'article_name': p.sale_order.product.product_name if p.sale_order.product else "N/A",
+            'order_no': p.work_order.work_order_no,
+            'article_name': p.work_order.produced_product.product_name if p.work_order.produced_product else "N/A",
             'planned_qty': p.planned_qty,
             'scanned_qty': scanned,
             'remaining_qty': round(max(0, p.planned_qty - scanned), 2),
@@ -128,12 +258,12 @@ def get_machine_plans(request, code):
          Q(machine__machine_name__icontains=code) | 
          Q(plan_no__iexact=code)) & 
         Q(status="Open")
-    ).select_related('sale_order', 'sale_order__product', 'machine')
+    ).select_related('work_order', 'work_order__produced_product', 'machine')
 
     data = [{
         'plan_no': p.plan_no,
         'machine': f"{p.machine.machine_name} ({p.machine.machine_code})" if p.machine else "N/A",
-        'article': p.sale_order.product.product_name if p.sale_order.product else "N/A",
+        'article': p.work_order.produced_product.product_name if p.work_order.produced_product else "N/A",
         'planned_qty': p.planned_qty,
     } for p in plans]
 
@@ -153,7 +283,7 @@ def get_next_roll(request, plan_no):
         Q(plan_no__iexact=plan_no) | 
         (Q(machine__machine_code__iexact=plan_no) & Q(status="Open")) |
         (Q(machine__machine_name__icontains=plan_no) & Q(status="Open"))
-    ).select_related('sale_order', 'sale_order__product', 'machine').order_by('status', '-id').first()
+    ).select_related('work_order', 'work_order__produced_product', 'machine').order_by('status', '-id').first()
 
     if not plan:
         return JsonResponse({'error': 'No active plan found for this input'}, status=404)
@@ -189,7 +319,7 @@ def get_next_roll(request, plan_no):
     return JsonResponse({
         'plan_no': plan.plan_no,  # Send actual plan_no back to frontend
         'machine': f"{plan.machine.machine_name} ({plan.machine.machine_code})" if plan.machine else "N/A",
-        'article': plan.sale_order.product.product_name if plan.sale_order.product else "N/A",
+        'article': plan.work_order.produced_product.product_name if plan.work_order.produced_product else (plan.work_order.yarn.item_name if plan.work_order.yarn else "N/A"),
         'planned_qty': plan.planned_qty,
         'balance': round(max(0, plan.planned_qty - scanned), 2),
         'next_roll_no': next_roll_no,
@@ -197,7 +327,7 @@ def get_next_roll(request, plan_no):
     })
 
 def plan_create(request):
-    sales = SaleOrder.objects.filter(status="Open")
+    work_orders = WorkOrder.objects.filter(status__in=["Pending", "In Progress"])
     machines = Machine.objects.filter(is_active=True)
     next_plan_no = generate_plan_no()
 
@@ -207,32 +337,32 @@ def plan_create(request):
         start_dates = request.POST.getlist('start_date[]')
         end_dates = request.POST.getlist('end_date[]')
         m_statuses = request.POST.getlist('status[]')
-        sale_order_id = request.POST.get('sale_order')
-        so_status = request.POST.get('so_status')
+        work_order_id = request.POST.get('work_order')
+        wo_status = request.POST.get('wo_status')
 
         # Get base plan number to avoid duplicates in loop
         current_plan_no = generate_plan_no()
 
-        # Duplication Check: Ek hi Sale Order ek hi machine par dobara plan na ho
+        # Duplication Check: Ek hi Work Order ek hi machine par dobara plan na ho
         has_error = False
         for m_id in machine_ids:
-            if m_id and ProductionPlan.objects.filter(sale_order_id=sale_order_id, machine_id=m_id).exists():
+            if m_id and ProductionPlan.objects.filter(work_order_id=work_order_id, machine_id=m_id).exists():
                 m_obj = Machine.objects.filter(id=m_id).first()
-                messages.error(request, f"Duplicate Error: Machine {m_obj.machine_name if m_obj else m_id} is already planned for this Sale Order!")
+                messages.error(request, f"Duplicate Error: Machine {m_obj.machine_name if m_obj else m_id} is already planned for this Work Order!")
                 has_error = True
         
         if has_error:
             return render(request, 'production/plan_create.html', {
-                'sales': sales, 
+                'work_orders': work_orders, 
                 'machines': machines, 
                 'next_plan_no': next_plan_no
             })
 
         with transaction.atomic():
-            # Update Sale Order Status
-            so_obj = SaleOrder.objects.get(id=sale_order_id)
-            so_obj.status = so_status
-            so_obj.save()
+            # Update Work Order Status
+            wo_obj = WorkOrder.objects.get(id=work_order_id)
+            wo_obj.status = wo_status
+            wo_obj.save()
 
             # Counter for plan sequence increment within the loop
             plan_prefix = current_plan_no.split('-')[0]
@@ -243,7 +373,7 @@ def plan_create(request):
                     p_no = f"{plan_prefix}-{plan_start_num:04d}"
                     ProductionPlan.objects.create(
                         plan_no=p_no,
-                        sale_order_id=sale_order_id,
+                        work_order_id=work_order_id,
                         machine_id=m_id,
                         planned_qty=qty,
                         start_date=s_date,
@@ -257,7 +387,7 @@ def plan_create(request):
             return redirect('production:plan_list')
 
     return render(request, 'production/plan_create.html', {
-        'sales': sales,
+        'work_orders': work_orders,
         'machines': machines,
         'next_plan_no': next_plan_no
     })
@@ -265,7 +395,7 @@ def plan_create(request):
 
 def plan_edit(request, pk):
     plan = get_object_or_404(ProductionPlan, pk=pk)
-    sales = SaleOrder.objects.all()
+    work_orders = WorkOrder.objects.all()
     machines = Machine.objects.filter(is_active=True)
 
     if request.method == "POST":
@@ -277,21 +407,21 @@ def plan_edit(request, pk):
         plan.status = request.POST.get('status')
         plan.remarks = request.POST.get('remarks')
         
-        # Sale Order Status update (optional)
-        so_status = request.POST.get('so_status')
+        # Work Order Status update (optional)
+        wo_status = request.POST.get('wo_status')
 
         with transaction.atomic():
             plan.save()
-            if so_status:
-                plan.sale_order.status = so_status
-                plan.sale_order.save()
+            if wo_status:
+                plan.work_order.status = wo_status
+                plan.work_order.save()
 
         messages.success(request, f"Production Plan {plan.plan_no} updated successfully.")
         return redirect('production:plan_list')
 
     return render(request, 'production/plan_edit.html', {
         'plan': plan,
-        'sales': sales,
+        'work_orders': work_orders,
         'machines': machines
     })
 
@@ -318,3 +448,88 @@ def plan_delete(request, pk):
     plan = get_object_or_404(ProductionPlan, pk=pk)
     plan.delete()
     return redirect('production:plan_list')
+
+# ================ Work Orders ==================
+def create_wo(request):
+    search_wo = None
+    wo_no = request.GET.get('wo_no', '').strip()
+    if wo_no:
+        search_wo = WorkOrder.objects.filter(work_order_no__iexact=wo_no).first()
+        if not search_wo:
+            messages.warning(request, f"No Work Order found for {wo_no}")
+
+    if request.method == "POST":
+        action = request.POST.get('action')
+        
+        if action == "delete":
+            wo_id = request.POST.get('wo_id')
+            if wo_id:
+                obj = get_object_or_404(WorkOrder, pk=wo_id)
+                obj.delete()
+                messages.success(request, "Work Order deleted successfully!")
+                return redirect('production:create_wo')
+            messages.error(request, "Please find a Work Order first to delete.")
+
+        sale_order_id = request.POST.get('sale_order_id')
+        wo_date = request.POST.get('work_order_date')
+        requested_department_id = request.POST.get('requested_department_id')
+        department_id = request.POST.get('department_id')
+        status = request.POST.get('status', 'Pending')
+
+        if not sale_order_id or not wo_date or not department_id:
+            messages.error(request, "Sale Order, Date, and Production Department are required.")
+        else:
+            # Check if work order already exists for this sale order and production department
+            existing_wo = WorkOrder.objects.filter(
+                sale_order_id=sale_order_id,
+                department_id=department_id
+            ).first()
+            
+            if existing_wo:
+                messages.error(request, f"Work Order is already generated against this Sale Order for the selected Production Department. Existing WO: {existing_wo.work_order_no}")
+            else:
+                try:
+                    WorkOrder.objects.create(
+                        sale_order_id=sale_order_id,
+                        department_id=department_id,
+                        work_order_date=wo_date,
+                        status=status,
+                        created_by=request.user
+                    )
+                    messages.success(request, "Work Order Created Successfully! Items will be generated via Signal.")
+                    return redirect('production:create_wo')
+                except Exception as e:
+                    messages.error(request, f"Error: {str(e)}")
+
+    sales = SaleOrder.objects.filter(status="Open")
+    departments = Department.objects.all()
+    return render(request, 'production/create_wo.html', {
+        'sales': sales,
+        'departments': departments,
+        'search_wo': search_wo,
+    })
+
+
+def wo_list(request):
+    q = request.GET.get('q', '').strip()
+    work_orders = WorkOrder.objects.all().select_related('sale_order', 'customer', 'department', 'recipe')
+    if q:
+        work_orders = work_orders.filter(
+            Q(work_order_no__icontains=q) |
+            Q(sale_order__sale_order_no__icontains=q) |
+            Q(customer__customer_name__icontains=q)
+        )
+    work_orders = work_orders.order_by('-created_at')
+    return render(request, 'production/wo_list.html', {
+        'work_orders': work_orders,
+        'q': q,
+    })
+
+
+def wo_detail(request, pk):
+    work_order = get_object_or_404(WorkOrder, pk=pk)
+    wo_items = work_order.items.all() if hasattr(work_order, 'items') else []
+    return render(request, 'production/wo_view.html', {
+        'work_order': work_order,
+        'wo_items': wo_items,
+    })

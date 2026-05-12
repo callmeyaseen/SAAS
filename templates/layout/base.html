@@ -401,6 +401,14 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 
         <div id="planSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
 
+            <a href="{% url 'production:create_wo' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="plus"></i> Create Work Order
+            </a>
+            <a href="{% url 'production:wo_list' %}" 
+            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+                <i data-feather="list"></i> Work Order Reports
+            </a>
             <a href="{% url 'production:plan_create' %}" 
             class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
                 <i data-feather="plus"></i> Create Plan
