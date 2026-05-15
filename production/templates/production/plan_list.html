@@ -45,8 +45,8 @@
             {% for p in plans %}
             <tr class="border-t text-center">
                 <td>{{ p.plan_no }}</td>
-                <td class="p-2 text-left">{{ p.sale_order.customer_name }}</td>
-                <td>{{ p.sale_order.sale_order_no }}</td>
+                <td class="p-2 text-left">{{ p.work_order.customer.customer_name|default:'N/A' }}</td>
+                <td>{{ p.work_order.sale_order.sale_order_no|default:'N/A' }}</td>
                 <td class="p-2 text-left">{{ p.machine.machine_name }}</td>
                 <td>{{ p.planned_qty }}</td>
                 <td>{{ p.start_date }}</td>

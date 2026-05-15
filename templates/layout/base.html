@@ -387,47 +387,181 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <i data-feather="chevron-right"></i>
 </button>
 
-<div id="productionMenu" class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
+<div id="productionMenu"
+    class="hidden absolute left-full top-0 ml-2 w-64 bg-gray-900 rounded shadow-lg p-2 space-y-1">
 
-    <!-- Production Planning Sub -->
+    <!-- WO Submenu -->
     <div class="relative">
-        <button onclick="toggleSub(event,'planSub')" 
-        class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
+
+        <button onclick="toggleSub(event,'woSub')"
+            class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
             <span class="flex items-center gap-2">
-                <i data-feather="calendar"></i> Production Planning
+                <i data-feather="file-text"></i>
+                WO
             </span>
+
             <i data-feather="chevron-right"></i>
         </button>
 
-        <div id="planSub" class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+        <div id="woSub"
+            class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
 
-            <a href="{% url 'production:create_wo' %}" 
-            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="plus"></i> Create Work Order
-            </a>
-            <a href="{% url 'production:wo_list' %}" 
-            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="list"></i> Work Order Reports
-            </a>
-            <a href="{% url 'production:plan_create' %}" 
-            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="plus"></i> Create Plan
+            <a href="{% url 'production:create_wo' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="plus"></i>
+                Create WO
             </a>
 
-            <a href="{% url 'production:plan_list' %}" 
-            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="list"></i> Plan List
+            <a href="{% url 'production:wo_list' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="list"></i>
+                WO Reports
             </a>
 
-            <a href="{% url 'production:plan_scan' %}" 
-            class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
-                <i data-feather="maximize"></i> Scan Roll
+        </div>
+    </div>
+
+    <!-- Plan Submenu -->
+    <div class="relative">
+
+        <button onclick="toggleSub(event,'planSub')"
+            class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+            <span class="flex items-center gap-2">
+                <i data-feather="calendar"></i>
+                Plan
+            </span>
+
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="planSub"
+            class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <a href="{% url 'production:plan_create' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="plus"></i>
+                Create Plan
+            </a>
+
+            <a href="{% url 'production:plan_list' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="list"></i>
+                Plan List
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Scanning Submenu -->
+    <div class="relative">
+
+        <button onclick="toggleSub(event,'scanSub')"
+            class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+            <span class="flex items-center gap-2">
+                <i data-feather="maximize"></i>
+                Scanning
+            </span>
+
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="scanSub"
+            class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <a href="{% url 'production:plan_scan' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="maximize"></i>
+                Scan Roll
+            </a>
+
+            <a href="{% url 'production:roll_inspection' %}"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="file-text"></i>
+                Roll Inspection
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Knitting Quality Submenu -->
+    <div class="relative">
+
+        <button onclick="toggleSub(event,'qualitySub')"
+            class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+            <span class="flex items-center gap-2">
+                <i data-feather="check-circle"></i>
+                Knitting Quality
+            </span>
+
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="qualitySub"
+            class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <a href="#"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="edit"></i>
+                Quality Entry Form
+            </a>
+
+            <a href="#"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="bar-chart-2"></i>
+                Quality Reports
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Knitting Finishing Submenu -->
+    <div class="relative">
+
+        <button onclick="toggleSub(event,'finishSub')"
+            class="w-full flex justify-between items-center px-3 py-2 rounded hover:bg-gray-700">
+
+            <span class="flex items-center gap-2">
+                <i data-feather="layers"></i>
+                Knitting Finishing
+            </span>
+
+            <i data-feather="chevron-right"></i>
+        </button>
+
+        <div id="finishSub"
+            class="hidden absolute left-full top-0 ml-2 w-56 bg-gray-950 rounded shadow-lg p-2 space-y-1">
+
+            <a href="#"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="edit"></i>
+                Finishing Entry Form
+            </a>
+
+            <a href="#"
+                class="flex gap-2 px-3 py-2 hover:bg-gray-700 rounded">
+
+                <i data-feather="bar-chart-2"></i>
+                Finishing Reports
             </a>
 
         </div>
     </div>
 
 </div>
+
 </li>
 <!-- CREATE USER -->
 {% if request.user.is_superuser %}
@@ -444,7 +578,6 @@ class="w-full flex justify-between px-3 py-2 rounded hover:bg-gray-700">
 <i data-feather="log-out"></i> Logout
 </a>
 </li>
-
 </ul>
 
 </div>

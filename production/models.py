@@ -35,6 +35,20 @@ class ProductionRoll(models.Model):
     def __str__(self):
         return self.roll_no
 
+class RollInspection(models.Model):
+    roll = models.ForeignKey(ProductionRoll, on_delete=models.CASCADE, related_name='inspections')
+    voucher_no = models.CharField(max_length=50, unique=True)
+    inspected_at = models.DateTimeField(auto_now_add=True)
+    four_point_faults = models.IntegerField(default=0)
+    press_hole = models.IntegerField(default=0)
+    rafu = models.IntegerField(default=0)
+    needle_break = models.IntegerField(default=0)
+    double_kunda = models.IntegerField(default=0)
+    remarks = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.voucher_no} - {self.roll.roll_no}"
+
 # ===================# WORK ORDER MASTER # ================================
 class WorkOrder(models.Model):
 

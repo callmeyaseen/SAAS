@@ -13,14 +13,14 @@
   {% endif %}
 
   <!-- Info Note -->
-  <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+  {% comment %} <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
     <p class="text-sm text-blue-800">
       <strong>Note:</strong> For multi-stage production (e.g., Spinning → Knitting → Finishing), create separate work orders for each production department.
       <br>• <strong>Requested Department:</strong> The department requesting this work order (from sale order or previous production stage)
       <br>• <strong>Production Department:</strong> The department that will actually execute this work order
       <br><em>Example: First WO (Spinning): Requested=Sale Dept, Production=Spinning → Second WO (Knitting): Requested=Spinning, Production=Knitting</em>
     </p>
-  </div>
+  </div> {% endcomment %}
   <form method="POST">
     {% csrf_token %}
     <!-- Hidden field to store WO ID for View button -->

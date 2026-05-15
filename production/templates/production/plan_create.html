@@ -26,16 +26,35 @@
             <span class="text-blue-600 font-mono font-bold text-lg">{{ next_plan_no }}</span>
         </div>
 
+        <!-- Department Selection -->
+        <div>
+            <label class="block mb-1 font-semibold text-blue-700">Select Department</label>
+            <select name="department" id="id_department" class="w-full border p-2 rounded bg-blue-50" required>
+                <option value="">---------</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+            <p id="dept_info" class="text-xs mt-1 text-gray-500">Select department first to load related work orders.</p>
+        </div>
+
         <!-- Work Order Selection -->
         <div>
             <label class="block mb-1 font-semibold text-blue-700">Select Work Order</label>
-            <select name="work_order" id="id_work_order" class="w-full border p-2 rounded bg-blue-50" required>
-                <option value="">---------</option>
-                {% for wo in work_orders %}
-                <option value="{{ wo.id }}">{{ wo.work_order_no }} - {{ wo.produced_product.product_name }} (SO: {{ wo.sale_order.sale_order_no }})</option>
-                {% endfor %}
+            <select name="work_order" id="id_work_order" class="w-full border p-2 rounded bg-blue-50" disabled required>
+                <option value="">Select a department first</option>
             </select>
             <p id="wo_status_info" class="text-xs mt-1 text-gray-500"></p>
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold text-gray-500">Selected WO Item</label>
+            <input type="text" id="id_produced_item" readonly class="w-full border p-2 rounded bg-gray-50" placeholder="Select a Work Order">
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold text-gray-500">Production Department</label>
+            <input type="text" id="id_wo_department" readonly class="w-full border p-2 rounded bg-gray-50" placeholder="Select a Work Order">
         </div>
 
         <!-- Work Order Total Qty -->
@@ -85,7 +104,7 @@
                         <th class="p-2 border">Qty to Plan</th>
                         <th class="p-2 border">Start Date</th>
                         <th class="p-2 border">End Date</th>
-                        <th class="p-2 border">Status</th>
+                        <th class="p-2 border">MC Status</th>
                         <th class="p-2 border w-10"></th>
                     </tr>
                 </thead>
@@ -155,13 +174,26 @@
 </div>
 
 <script>
+window.allMachineOptions = [
+    {% for m in machines %}
+    {
+        id: '{{ m.id }}',
+        label: '{{ m.machine_name }} ({{ m.machine_code }})',
+        department_id: '{% if m.department %}{{ m.department.id }}{% endif %}'
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+window.currentMachineOptions = window.allMachineOptions;
+
 function addMachineRow() {
     const tbody = document.getElementById('machine_rows');
     const firstRow = tbody.querySelector('tr');
     const newRow = firstRow.cloneNode(true);
     
     // Clear values in new row
-    newRow.querySelector('select[name="machine[]"]').value = "";
+    const machineSelect = newRow.querySelector('select[name="machine[]"]');
+    machineSelect.innerHTML = buildMachineOptions(window.currentMachineOptions);
+    machineSelect.value = "";
     newRow.querySelector('select[name="status[]"]').value = "Open";
     newRow.querySelectorAll('input[type="number"]').forEach(i => i.value = "");
     newRow.querySelectorAll('input[type="date"]').forEach(i => i.value = "");
@@ -177,9 +209,93 @@ function addMachineRow() {
     feather.replace();
 }
 
+function buildMachineOptions(options) {
+    let html = '<option value="">Select Machine</option>';
+    options.forEach(opt => {
+        html += `<option value="${opt.id}">${opt.label}</option>`;
+    });
+    return html;
+}
+
+function setMachineOptions(options) {
+    window.currentMachineOptions = options;
+    document.querySelectorAll('select[name="machine[]"]').forEach(select => {
+        const selectedValue = select.value;
+        select.innerHTML = buildMachineOptions(options);
+        if (selectedValue && options.some(opt => opt.id == selectedValue)) {
+            select.value = selectedValue;
+        }
+    });
+}
+
+function filterMachinesByDepartment(departmentId) {
+    if (!departmentId) {
+        return window.allMachineOptions;
+    }
+    const filtered = window.allMachineOptions.filter(opt => String(opt.department_id) === String(departmentId));
+    return filtered.length ? filtered : window.allMachineOptions;
+}
+
+document.getElementById('id_department').addEventListener('change', function() {
+    const departmentId = this.value;
+    const workOrderSelect = document.getElementById('id_work_order');
+    const deptInfo = document.getElementById('dept_info');
+
+    document.getElementById('id_produced_item').value = '';
+    document.getElementById('id_wo_department').value = '';
+    document.getElementById('id_order_qty').value = '';
+    document.getElementById('id_width_type').value = '';
+    document.getElementById('id_fabric_width').value = '';
+    document.getElementById('id_finishing_info').value = '';
+    document.getElementById('wo_status_info').innerText = '';
+
+    const machineOptions = filterMachinesByDepartment(departmentId);
+    setMachineOptions(machineOptions);
+
+    if (!departmentId) {
+        workOrderSelect.innerHTML = '<option value="">Select a department first</option>';
+        workOrderSelect.disabled = true;
+        deptInfo.innerText = 'Select department first to load related work orders.';
+        return;
+    }
+
+    workOrderSelect.disabled = true;
+    workOrderSelect.innerHTML = '<option value="">Loading work orders...</option>';
+    deptInfo.innerText = 'Loading work orders for selected department...';
+
+    fetch(`/production/get-work-orders/${departmentId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.work_orders || data.work_orders.length === 0) {
+                workOrderSelect.innerHTML = '<option value="">No work orders available</option>';
+                workOrderSelect.disabled = true;
+                deptInfo.innerText = 'No work orders found for this department.';
+                return;
+            }
+            let html = '<option value="">---------</option>';
+            data.work_orders.forEach(wo => {
+                html += `<option value="${wo.id}">${wo.label}</option>`;
+            });
+            workOrderSelect.innerHTML = html;
+            workOrderSelect.disabled = false;
+            deptInfo.innerText = `Choose a work order from the selected department.`;
+        })
+        .catch(err => {
+            console.error('Error loading work orders:', err);
+            workOrderSelect.innerHTML = '<option value="">Error loading work orders</option>';
+            workOrderSelect.disabled = true;
+            deptInfo.innerText = 'Unable to load work orders for this department.';
+        });
+});
+
 document.getElementById('id_work_order').addEventListener('change', function() {
     const woId = this.value;
-    if (!woId) return;
+    if (!woId) {
+        document.getElementById('id_produced_item').value = '';
+        document.getElementById('id_wo_department').value = '';
+        document.getElementById('wo_status_info').innerText = '';
+        return;
+    }
 
     fetch(`/production/get-wo-details/${woId}/`)
         .then(response => response.json())
@@ -190,10 +306,14 @@ document.getElementById('id_work_order').addEventListener('change', function() {
             document.getElementById('id_width_type').value = data.width_type;
             document.getElementById('id_fabric_width').value = data.width;
             document.getElementById('id_finishing_info').value = data.finishing;
+            document.getElementById('id_produced_item').value = data.product_name;
+            document.getElementById('id_wo_department').value = data.department;
 
             // Set initial qty in the first row
             const firstQtyInput = document.querySelector('.qty-input');
             if (firstQtyInput) firstQtyInput.value = data.balance_qty;
+
+            setMachineOptions(data.machine_options);
 
             document.getElementById('wo_status_info').innerText = `WO Total: ${data.order_qty} | Balance: ${data.balance_qty} | Running on ${data.running_on} machines.`;
             updateTotals();

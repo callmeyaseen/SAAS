@@ -1,8 +1,11 @@
+import re
+
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import ProductionPlan, ProductionRoll, WorkOrder # Added WorkOrder
+from django.urls import reverse
+from .models import ProductionPlan, ProductionRoll, RollInspection, WorkOrder
 from sale.models import SaleOrder
-from utilities.models import Machine, Product, Department, Recipe # Added Product, Department, Recipe
-from django.contrib.auth.models import User # Added User for created_by
+from utilities.models import Machine, Product, Department, Recipe
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.db.models import Sum, Q
 from django.db import transaction
@@ -143,6 +146,14 @@ def get_wo_details(request, pk):
     already_planned = ProductionPlan.objects.filter(work_order=wo).aggregate(total=Sum('planned_qty'))['total'] or 0
     balance = wo.order_qty - already_planned
     
+    machine_queryset = Machine.objects.filter(is_active=True, department=wo.department)
+    if not machine_queryset.exists():
+        machine_queryset = Machine.objects.filter(is_active=True)
+    machine_options = [
+        {'id': m.id, 'label': f"{m.machine_name} ({m.machine_code})"}
+        for m in machine_queryset
+    ]
+
     return JsonResponse({
         'order_no': wo.work_order_no,
         'sale_order_no': so.sale_order_no,
@@ -158,6 +169,7 @@ def get_wo_details(request, pk):
         'width': so.fabric_width,
         'finishing': so.finishing_process,
         'running_on': ProductionPlan.objects.filter(work_order=wo, status="Open").count(),
+        'machine_options': machine_options,
     })
 
 def get_machine_load(request):
@@ -269,6 +281,94 @@ def get_machine_plans(request, code):
 
     return JsonResponse({'plans': data})
 
+
+def generate_inspection_voucher():
+    last_inspection = RollInspection.objects.order_by('-id').first()
+    if last_inspection and last_inspection.voucher_no:
+        match = re.search(r'(\d+)$', last_inspection.voucher_no)
+        if match:
+            next_num = int(match.group(1)) + 1
+        else:
+            next_num = 1
+    else:
+        next_num = 1
+    return f"INSP-{next_num:04d}"
+
+
+def roll_inspection(request):
+    selected_roll = None
+    inspection = None
+    default_voucher = generate_inspection_voucher()
+    roll_id = request.GET.get('roll_id')
+    roll_no = request.GET.get('roll_no', '').strip()
+    voucher_search = request.GET.get('voucher', '').strip()
+
+    if request.method == "POST":
+        form_roll_id = request.POST.get('roll_id')
+        voucher_no = request.POST.get('voucher_no', '').strip()
+
+        if not form_roll_id:
+            messages.error(request, "Please select a roll before saving inspection.")
+            return redirect('production:roll_inspection')
+
+        selected_roll = get_object_or_404(ProductionRoll, pk=form_roll_id)
+        inspection = RollInspection.objects.filter(roll=selected_roll).first()
+        if not voucher_no:
+            voucher_no = inspection.voucher_no if inspection else generate_inspection_voucher()
+
+        duplicate_voucher = RollInspection.objects.filter(voucher_no__iexact=voucher_no).exclude(roll=selected_roll).first()
+        if duplicate_voucher:
+            messages.error(request, f"Voucher {voucher_no} is already assigned to another inspection.")
+        else:
+            if inspection:
+                inspection.voucher_no = voucher_no
+            else:
+                inspection = RollInspection(roll=selected_roll, voucher_no=voucher_no)
+
+            inspection.four_point_faults = int(request.POST.get('four_point_faults') or 0)
+            inspection.press_hole = int(request.POST.get('press_hole') or 0)
+            inspection.rafu = int(request.POST.get('rafu') or 0)
+            inspection.needle_break = int(request.POST.get('needle_break') or 0)
+            inspection.double_kunda = int(request.POST.get('double_kunda') or 0)
+            inspection.remarks = request.POST.get('remarks', '').strip()
+            inspection.save()
+
+            messages.success(request, f"Inspection saved with voucher {inspection.voucher_no}.")
+            return redirect(f"{reverse('production:roll_inspection')}?voucher={inspection.voucher_no}")
+
+    if voucher_search:
+        inspection = RollInspection.objects.filter(voucher_no__iexact=voucher_search).select_related('roll__plan__work_order').first()
+        if inspection:
+            selected_roll = inspection.roll
+        else:
+            messages.warning(request, f"No inspection found for voucher {voucher_search}.")
+
+    if roll_id and not selected_roll:
+        selected_roll = ProductionRoll.objects.filter(pk=roll_id).select_related('plan__work_order').first()
+        if selected_roll:
+            inspection = RollInspection.objects.filter(roll=selected_roll).first()
+
+    if roll_no and not selected_roll:
+        selected_roll = ProductionRoll.objects.filter(roll_no__iexact=roll_no).select_related('plan__work_order').first()
+        if selected_roll:
+            inspection = RollInspection.objects.filter(roll=selected_roll).first()
+
+    return render(request, 'production/roll_inspection.html', {
+        'selected_roll': selected_roll,
+        'inspection': inspection,
+        'default_voucher': default_voucher,
+        'request': request,
+    })
+
+
+def inspection_delete(request, pk):
+    inspection = get_object_or_404(RollInspection, pk=pk)
+    voucher_no = inspection.voucher_no
+    inspection.delete()
+    messages.success(request, f"Inspection {voucher_no} deleted successfully.")
+    return redirect('production:roll_inspection')
+
+
 def plan_scan(request):
     """Dedicated page for scanning production rolls."""
     return render(request, 'production/plan_scan.html')
@@ -327,35 +427,44 @@ def get_next_roll(request, plan_no):
     })
 
 def plan_create(request):
-    work_orders = WorkOrder.objects.filter(status__in=["Pending", "In Progress"])
-    machines = Machine.objects.filter(is_active=True)
+    departments = Department.objects.all()
+    machines = Machine.objects.filter(is_active=True).select_related('department')
     next_plan_no = generate_plan_no()
 
     if request.method == "POST":
+        department_id = request.POST.get('department')
+        work_order_id = request.POST.get('work_order')
         machine_ids = request.POST.getlist('machine[]')
         planned_qtys = request.POST.getlist('planned_qty[]')
         start_dates = request.POST.getlist('start_date[]')
         end_dates = request.POST.getlist('end_date[]')
         m_statuses = request.POST.getlist('status[]')
-        work_order_id = request.POST.get('work_order')
         wo_status = request.POST.get('wo_status')
 
         # Get base plan number to avoid duplicates in loop
         current_plan_no = generate_plan_no()
 
-        # Duplication Check: Ek hi Work Order ek hi machine par dobara plan na ho
         has_error = False
+        if not department_id:
+            messages.error(request, "Please select a department first.")
+            has_error = True
+        if not work_order_id:
+            messages.error(request, "Please select a work order.")
+            has_error = True
+        if work_order_id and ProductionPlan.objects.filter(work_order_id=work_order_id).exists():
+            messages.error(request, "Duplicate Error: This Work Order is already planned. Please select a different Work Order.")
+            has_error = True
         for m_id in machine_ids:
             if m_id and ProductionPlan.objects.filter(work_order_id=work_order_id, machine_id=m_id).exists():
                 m_obj = Machine.objects.filter(id=m_id).first()
                 messages.error(request, f"Duplicate Error: Machine {m_obj.machine_name if m_obj else m_id} is already planned for this Work Order!")
                 has_error = True
-        
+
         if has_error:
             return render(request, 'production/plan_create.html', {
-                'work_orders': work_orders, 
-                'machines': machines, 
-                'next_plan_no': next_plan_no
+                'departments': departments,
+                'machines': machines,
+                'next_plan_no': next_plan_no,
             })
 
         with transaction.atomic():
@@ -387,10 +496,26 @@ def plan_create(request):
             return redirect('production:plan_list')
 
     return render(request, 'production/plan_create.html', {
-        'work_orders': work_orders,
+        'departments': departments,
         'machines': machines,
         'next_plan_no': next_plan_no
     })
+
+
+def get_work_orders_by_department(request, dept_id):
+    work_orders = WorkOrder.objects.filter(
+        department_id=dept_id,
+        status__in=["Pending", "In Progress"]
+    ).exclude(productionplan__isnull=False).select_related('sale_order', 'produced_product')
+
+    results = [
+        {
+            'id': wo.id,
+            'label': f"{wo.work_order_no}"
+        }
+        for wo in work_orders
+    ]
+    return JsonResponse({'work_orders': results})
 
 
 def plan_edit(request, pk):
@@ -428,10 +553,14 @@ def plan_edit(request, pk):
 
 def plan_list(request):
     search_query = request.GET.get('search', '')
-    plans = ProductionPlan.objects.all().order_by('-id')
+    plans = ProductionPlan.objects.select_related('work_order', 'work_order__sale_order', 'work_order__customer', 'machine').all().order_by('-id')
 
     if search_query:
-        plans = plans.filter(plan_no__icontains=search_query)
+        plans = plans.filter(
+            Q(plan_no__icontains=search_query) |
+            Q(work_order__sale_order__sale_order_no__icontains=search_query) |
+            Q(work_order__customer__customer_name__icontains=search_query)
+        )
 
     return render(request, 'production/plan_list.html', {
         'plans': plans,
