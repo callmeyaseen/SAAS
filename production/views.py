@@ -2,7 +2,7 @@ import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from .models import ProductionPlan, ProductionRoll, RollInspection, WorkOrder
+from .models import ProductionPlan, ProductionRoll, QualityEntry, WorkOrder
 from sale.models import SaleOrder
 from utilities.models import Machine, Product, Department, Recipe
 from django.contrib.auth.models import User
@@ -282,91 +282,122 @@ def get_machine_plans(request, code):
     return JsonResponse({'plans': data})
 
 
-def generate_inspection_voucher():
-    last_inspection = RollInspection.objects.order_by('-id').first()
-    if last_inspection and last_inspection.voucher_no:
-        match = re.search(r'(\d+)$', last_inspection.voucher_no)
+def generate_quality_entry_no():
+    last_entry = QualityEntry.objects.order_by('-id').first()
+    if last_entry and last_entry.entry_no:
+        match = re.search(r'(\d+)$', last_entry.entry_no)
         if match:
             next_num = int(match.group(1)) + 1
         else:
             next_num = 1
     else:
         next_num = 1
-    return f"INSP-{next_num:04d}"
+    return f"QE-{next_num:04d}"
 
 
-def roll_inspection(request):
+def quality_entry_form(request):
     selected_roll = None
-    inspection = None
-    default_voucher = generate_inspection_voucher()
+    quality_entry = None
+    default_entry_no = generate_quality_entry_no()
     roll_id = request.GET.get('roll_id')
     roll_no = request.GET.get('roll_no', '').strip()
-    voucher_search = request.GET.get('voucher', '').strip()
+    plan_no = request.GET.get('plan_no', '').strip()
+    entry_search = request.GET.get('entry', '').strip()
+    
+    # Get rolls based on plan number if provided
+    rolls = []
+    if plan_no:
+        plan = ProductionPlan.objects.filter(plan_no__iexact=plan_no).first()
+        if plan:
+            rolls = ProductionRoll.objects.filter(plan=plan).select_related('plan__work_order')
 
     if request.method == "POST":
         form_roll_id = request.POST.get('roll_id')
-        voucher_no = request.POST.get('voucher_no', '').strip()
+        entry_no = request.POST.get('entry_no', '').strip()
 
         if not form_roll_id:
-            messages.error(request, "Please select a roll before saving inspection.")
-            return redirect('production:roll_inspection')
+            messages.error(request, "Please select a roll before saving quality entry.")
+            return redirect('production:quality_entry_form')
 
         selected_roll = get_object_or_404(ProductionRoll, pk=form_roll_id)
-        inspection = RollInspection.objects.filter(roll=selected_roll).first()
-        if not voucher_no:
-            voucher_no = inspection.voucher_no if inspection else generate_inspection_voucher()
+        quality_entry = QualityEntry.objects.filter(roll=selected_roll).first()
+        
+        if not entry_no:
+            entry_no = quality_entry.entry_no if quality_entry else generate_quality_entry_no()
 
-        duplicate_voucher = RollInspection.objects.filter(voucher_no__iexact=voucher_no).exclude(roll=selected_roll).first()
-        if duplicate_voucher:
-            messages.error(request, f"Voucher {voucher_no} is already assigned to another inspection.")
+        duplicate_entry = QualityEntry.objects.filter(entry_no__iexact=entry_no).exclude(roll=selected_roll).first()
+        if duplicate_entry:
+            messages.error(request, f"Entry {entry_no} is already assigned to another quality entry.")
         else:
-            if inspection:
-                inspection.voucher_no = voucher_no
+            if quality_entry:
+                quality_entry.entry_no = entry_no
             else:
-                inspection = RollInspection(roll=selected_roll, voucher_no=voucher_no)
+                quality_entry = QualityEntry(roll=selected_roll, entry_no=entry_no)
 
-            inspection.four_point_faults = int(request.POST.get('four_point_faults') or 0)
-            inspection.press_hole = int(request.POST.get('press_hole') or 0)
-            inspection.rafu = int(request.POST.get('rafu') or 0)
-            inspection.needle_break = int(request.POST.get('needle_break') or 0)
-            inspection.double_kunda = int(request.POST.get('double_kunda') or 0)
-            inspection.remarks = request.POST.get('remarks', '').strip()
-            inspection.save()
+            quality_entry.weight = float(request.POST.get('weight') or 0)
+            quality_entry.fault_type = request.POST.get('fault_type', '').strip() or None
+            quality_entry.press_hole = int(request.POST.get('press_hole') or 0)
+            quality_entry.double_kunda = int(request.POST.get('double_kunda') or 0)
+            quality_entry.needle_break = int(request.POST.get('needle_break') or 0)
+            quality_entry.remarks = request.POST.get('remarks', '').strip()
+            quality_entry.status = request.POST.get('status', 'Pass')
+            quality_entry.save()
 
-            messages.success(request, f"Inspection saved with voucher {inspection.voucher_no}.")
-            return redirect(f"{reverse('production:roll_inspection')}?voucher={inspection.voucher_no}")
+            messages.success(request, f"Quality entry saved with entry no {quality_entry.entry_no}.")
+            return redirect(f"{reverse('production:quality_entry_form')}?entry={quality_entry.entry_no}")
 
-    if voucher_search:
-        inspection = RollInspection.objects.filter(voucher_no__iexact=voucher_search).select_related('roll__plan__work_order').first()
-        if inspection:
-            selected_roll = inspection.roll
+    if entry_search:
+        quality_entry = QualityEntry.objects.filter(entry_no__iexact=entry_search).select_related('roll__plan__work_order').first()
+        if quality_entry:
+            selected_roll = quality_entry.roll
         else:
-            messages.warning(request, f"No inspection found for voucher {voucher_search}.")
+            messages.warning(request, f"No quality entry found for entry no {entry_search}.")
 
     if roll_id and not selected_roll:
         selected_roll = ProductionRoll.objects.filter(pk=roll_id).select_related('plan__work_order').first()
         if selected_roll:
-            inspection = RollInspection.objects.filter(roll=selected_roll).first()
+            quality_entry = QualityEntry.objects.filter(roll=selected_roll).first()
 
     if roll_no and not selected_roll:
         selected_roll = ProductionRoll.objects.filter(roll_no__iexact=roll_no).select_related('plan__work_order').first()
         if selected_roll:
-            inspection = RollInspection.objects.filter(roll=selected_roll).first()
+            quality_entry = QualityEntry.objects.filter(roll=selected_roll).first()
 
-    return render(request, 'production/roll_inspection.html', {
+    return render(request, 'production/quality_entry_form.html', {
         'selected_roll': selected_roll,
-        'inspection': inspection,
-        'default_voucher': default_voucher,
+        'quality_entry': quality_entry,
+        'default_entry_no': default_entry_no,
+        'rolls': rolls,
+        'plan_no': plan_no,
         'request': request,
     })
 
 
-def inspection_delete(request, pk):
-    inspection = get_object_or_404(RollInspection, pk=pk)
-    voucher_no = inspection.voucher_no
-    inspection.delete()
-    messages.success(request, f"Inspection {voucher_no} deleted successfully.")
-    return redirect('production:roll_inspection')
+def quality_entry_delete(request, pk):
+    quality_entry = get_object_or_404(QualityEntry, pk=pk)
+    entry_no = quality_entry.entry_no
+    quality_entry.delete()
+    messages.success(request, f"Quality entry {entry_no} deleted successfully.")
+    return redirect('production:quality_entry_form')
+
+
+def get_rolls_by_plan(request, plan_no):
+    """Fetch all rolls for a given plan number."""
+    if not plan_no or plan_no == 'PLACEHOLDER':
+        return JsonResponse({'rolls': []})
+    
+    plan = ProductionPlan.objects.filter(plan_no__iexact=plan_no).first()
+    if not plan:
+        return JsonResponse({'rolls': []})
+    
+    rolls = ProductionRoll.objects.filter(plan=plan).select_related('plan__work_order')
+    data = [{
+        'id': roll.id,
+        'roll_no': roll.roll_no,
+        'weight': roll.weight,
+    } for roll in rolls]
+    
+    return JsonResponse({'rolls': data})
 
 
 def plan_scan(request):

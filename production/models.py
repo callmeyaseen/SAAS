@@ -35,19 +35,34 @@ class ProductionRoll(models.Model):
     def __str__(self):
         return self.roll_no
 
-class RollInspection(models.Model):
-    roll = models.ForeignKey(ProductionRoll, on_delete=models.CASCADE, related_name='inspections')
-    voucher_no = models.CharField(max_length=50, unique=True)
-    inspected_at = models.DateTimeField(auto_now_add=True)
-    four_point_faults = models.IntegerField(default=0)
+class QualityEntry(models.Model):
+    STATUS_CHOICES = (
+        ('Pass', 'Pass'),
+        ('Hold', 'Hold'),
+        ('Reject', 'Reject'),
+    )
+    
+    FAULT_CHOICES = (
+        ('Press Hole', 'Press Hole'),
+        ('Double Kunda', 'Double Kunda'),
+        ('Needle Break', 'Needle Break'),
+    )
+    
+    roll = models.ForeignKey(ProductionRoll, on_delete=models.CASCADE, related_name='quality_entries')
+    entry_no = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Quality Fields
+    weight = models.FloatField()
+    fault_type = models.CharField(max_length=50, choices=FAULT_CHOICES, blank=True, null=True)
     press_hole = models.IntegerField(default=0)
-    rafu = models.IntegerField(default=0)
-    needle_break = models.IntegerField(default=0)
     double_kunda = models.IntegerField(default=0)
-    remarks = models.TextField(blank=True)
+    needle_break = models.IntegerField(default=0)
+    remarks = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pass')
 
     def __str__(self):
-        return f"{self.voucher_no} - {self.roll.roll_no}"
+        return f"{self.entry_no} - {self.roll.roll_no}"
 
 # ===================# WORK ORDER MASTER # ================================
 class WorkOrder(models.Model):

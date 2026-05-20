@@ -1,0 +1,225 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}Quality Entry Form{% endblock %}
+
+{% block content %}
+<div class="bg-slate-100 h-[calc(100vh-5rem)] overflow-hidden rounded-2xl"> 
+  <div class="max-w-full mx-auto px-4 py-4 h-full flex flex-col">
+    <!-- Compact Header -->
+    <div class="rounded-xl bg-slate-900 p-3 shadow-lg mb-4 border-b border-slate-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-bold text-white tracking-tight">Quality Entry Dashboard</h1>
+          <p class="text-[11px] text-slate-400 font-medium">Production Management &middot; Quality Control</p>
+        </div>
+        <div class="flex gap-2">
+          <a href="{% url 'production:quality_entry_form' %}" class="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-white/20 hover:bg-white/20">Refresh</a> {# Smaller buttons #}
+          <a href="{% url 'production:plan_scan' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">Scan Rolls</a> {# Smaller buttons #}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 grid-cols-12">
+      <!-- Left Column: Selection (Col span 4) -->
+      <div class="col-span-12 lg:col-span-4 space-y-3"> {# Reduced space-y #}
+        <div class="rounded-xl bg-white border border-slate-200 p-3 shadow-sm"> {# Reduced padding and border-radius #}
+          <h2 class="text-base font-bold text-slate-900 mb-2 border-b pb-1">1. Selection</h2> {# Smaller heading, reduced margin/padding #}
+          <div class="space-y-3"> {# Reduced space-y #}
+            <div>
+              <label for="plan_no" class="block text-[10px] font-bold text-slate-600 mb-1">Plan Number</label> {# Smaller label #}
+              <input id="plan_no" name="plan_no" type="text" value="{{ plan_no }}" placeholder="Search Plan..." class="w-full rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm focus:ring-2 focus:ring-indigo-200 outline-none" /> {# Smaller input #}
+            </div>
+            <div>
+              <label for="roll_dropdown" class="block text-[10px] font-bold text-slate-600 mb-1">Roll Number</label> {# Smaller label #}
+              <select id="roll_dropdown" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 text-sm outline-none"> {# Smaller select #}
+                  <option value="">Select Roll from Plan</option>
+                  {% if rolls %}
+                    {% for roll in rolls %}
+                      <option value="{{ roll.id }}" data-weight="{{ roll.weight }}" data-roll-no="{{ roll.roll_no }}">{{ roll.roll_no }} · {{ roll.weight }} kg</option>
+                    {% endfor %}
+                  {% endif %}
+                  {% if selected_roll %}
+                    <option value="{{ selected_roll.id }}" selected data-weight="{{ selected_roll.weight }}" data-roll-no="{{ selected_roll.roll_no }}">{{ selected_roll.roll_no }} · {{ selected_roll.weight }} kg</option>
+                  {% endif %}
+                </select>
+            </div>
+            
+            {% if selected_roll %}
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div class="rounded-lg bg-slate-100 p-2"> {# Reduced padding #}
+                <p class="text-[10px] font-bold text-slate-500 uppercase">Weight</p>
+                <p class="text-xs font-bold text-slate-900">{{ selected_roll.weight }} kg</p> {# Smaller text #}
+              </div>
+              <div class="rounded-lg bg-slate-100 p-2"> {# Reduced padding #}
+                <p class="text-[10px] font-bold text-slate-500 uppercase">Roll No</p>
+                <p class="text-xs font-bold text-slate-900">{{ selected_roll.roll_no }}</p> {# Smaller text #}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-white border border-slate-200 p-3 shadow-sm"> {# Reduced padding and border-radius #}
+          <h3 class="text-sm font-bold text-slate-900 mb-1">Entry Search</h3> {# Reduced margin #}
+          <form method="GET" class="flex gap-1"> {# Reduced gap #}
+            <input name="entry" type="text" value="{{ request.GET.entry }}" placeholder="QE-0001" class="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs" /> {# Smaller input #}
+            <button type="submit" class="bg-slate-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold">Find</button> {# Smaller button #}
+          </form>
+        </div>
+
+        {% if quality_entry %} {# Reduced padding and border-radius #}
+        <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-3 shadow-sm ">
+          <h3 class="text-sm  font-bold text-indigo-900 mb-1">Last Saved Summary</h3> {# Reduced margin #}
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-indigo-600">Entry:</span>
+            <span class="font-bold">{{ quality_entry.entry_no }}</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-indigo-600">Status:</span>
+            <span class="font-bold {% if quality_entry.status == 'Pass' %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ quality_entry.status }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column: Form (Col span 8) -->
+      <div class="col-span-12 lg:col-span-8">
+        <div class="rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col h-full"> {# Reduced border-radius #}
+          <div class="border-b border-slate-200 p-3"> {# Reduced padding #}
+            <h2 class="text-base font-bold text-slate-900">2. Quality Entry Details</h2> {# Smaller heading #}
+          </div>
+          <div class="p-3 overflow-y-auto"> {# Reduced padding #}
+            {% if messages %}
+              <div id="messages" class="mb-2"> {# Reduced margin #}
+                {% for message in messages %}
+                <div class="rounded-lg border px-3 py-1.5 text-xs font-medium {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}"> {# Smaller padding and border-radius #}
+                  {{ message }}
+                </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <form method="POST" id="quality_form" onsubmit="return validateForm()" class="grid grid-cols-2 gap-3"> {# Added validation #}
+              {% csrf_token %}
+              <input type="hidden" id="roll_id" name="roll_id" value="{{ selected_roll.id|default:'' }}" />
+
+              <div>
+                <label for="entry_no" class="block text-[10px] font-bold text-slate-600 mb-1">Entry Number</label> {# Smaller label #}
+                <input id="entry_no" name="entry_no" type="text" value="{% if quality_entry %}{{ quality_entry.entry_no }}{% else %}{{ default_entry_no }}{% endif %}" readonly class="w-full rounded-lg border border-slate-300 bg-slate-100 px-2 py-1.5 text-sm" /> {# Smaller input #}
+              </div>
+              <div>
+                <label for="weight" class="block text-[10px] font-bold text-slate-600 mb-1">Weight (kg)</label> {# Smaller label #}
+                <input id="weight" name="weight" type="number" step="0.01" value="{% if quality_entry %}{{ quality_entry.weight }}{% elif selected_roll %}{{ selected_roll.weight }}{% endif %}" required class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" /> {# Smaller input #}
+              </div>
+              <div>
+                <label for="fault_type" class="block text-[10px] font-bold text-slate-600 mb-1">Fault Type</label> {# Smaller label #}
+                <select id="fault_type" name="fault_type" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"> {# Smaller select #}
+                  <option value="">Select Fault</option>
+                  <option value="Press Hole" {% if quality_entry.fault_type == 'Press Hole' %}selected{% endif %}>Press Hole</option>
+                  <option value="Double Kunda" {% if quality_entry.fault_type == 'Double Kunda' %}selected{% endif %}>Double Kunda</option>
+                  <option value="Needle Break" {% if quality_entry.fault_type == 'Needle Break' %}selected{% endif %}>Needle Break</option>
+                </select>
+              </div>
+              <div>
+                <label for="status" class="block text-[10px] font-bold text-slate-600 mb-1">Quality Status</label> {# Smaller label #}
+                <select id="status" name="status" required class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-bold"> {# Smaller select #}
+                  <option value="Pass" {% if not quality_entry or quality_entry.status == 'Pass' %}selected{% endif %}>✅ Pass</option>
+                  <option value="Hold" {% if quality_entry.status == 'Hold' %}selected{% endif %}>⏳ Hold</option>
+                  <option value="Reject" {% if quality_entry.status == 'Reject' %}selected{% endif %}>❌ Reject</option>
+                </select>
+              </div>
+
+              <div class="col-span-2 grid grid-cols-3 gap-1 py-1 border-y my-1"> {# Reduced gap, padding, margin #}
+                <div>
+                  <label class="block text-[9px] font-bold text-slate-500 uppercase">Press Hole</label> {# Smaller label #}
+                  <input name="press_hole" type="number" value="{{ quality_entry.press_hole|default:0 }}" class="w-full border rounded-md px-1.5 py-0.5 text-xs" /> {# Smaller input #}
+                </div>
+                <div>
+                  <label class="block text-[9px] font-bold text-slate-500 uppercase">Double Kunda</label> {# Smaller label #}
+                  <input name="double_kunda" type="number" value="{{ quality_entry.double_kunda|default:0 }}" class="w-full border rounded-md px-1.5 py-0.5 text-xs" /> {# Smaller input #}
+                </div>
+                <div>
+                  <label class="block text-[9px] font-bold text-slate-500 uppercase">Needle Break</label> {# Smaller label #}
+                  <input name="needle_break" type="number" value="{{ quality_entry.needle_break|default:0 }}" class="w-full border rounded-md px-1.5 py-0.5 text-xs" /> {# Smaller input #}
+                </div>
+              </div>
+
+              <div class="col-span-2">
+                <label for="remarks" class="block text-[10px] font-bold text-slate-600 mb-1">Remarks</label> {# Smaller label #}
+                <textarea id="remarks" name="remarks" rows="2" class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">{% if quality_entry %}{{ quality_entry.remarks }}{% endif %}</textarea> {# Smaller textarea #}
+              </div>
+
+              <div class="col-span-2 flex gap-1 pt-1"> {# Reduced gap and padding #}
+                  <button type="submit" class="flex-1 rounded-lg bg-indigo-600 py-2.5 text-sm font-bold text-black hover:bg-indigo-700">Save Entry</button> {# Smaller button #}
+                  {% if quality_entry %}
+                  <a href="{% url 'production:quality_entry_delete' quality_entry.id %}" onclick="return confirm('Delete?')" class="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-rose-700">Delete</a> {# Smaller button #}
+                  {% endif %}
+                  <a href="{% url 'production:quality_entry_form' %}" class="rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-bold text-slate-600">Clear</a> {# Smaller button #}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const planInput = document.getElementById('plan_no');
+  const rollDropdown = document.getElementById('roll_dropdown');
+  const weightInput = document.getElementById('weight');
+  const rollIdInput = document.getElementById('roll_id');
+
+  // Functionality: Enter key on Plan No reloads page to fetch rolls
+  planInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const planNo = this.value.trim();
+      if (planNo) {
+        window.location.href = `?plan_no=${encodeURIComponent(planNo)}`;
+      }
+    }
+  });
+
+  // Functionality: Selecting a roll reloads page to fetch its Quality Entry details
+  rollDropdown.addEventListener('change', function() {
+    const rollId = this.value;
+    const planNo = planInput.value.trim();
+    if (rollId) {
+      // Optional: Add a loading state
+      this.disabled = true;
+      planInput.disabled = true;
+      window.location.href = `?plan_no=${encodeURIComponent(planNo)}&roll_id=${rollId}`;
+    }
+  });
+});
+
+// Improved Form Validation
+function validateForm() {
+  const rollId = document.getElementById('roll_id').value || document.getElementById('roll_dropdown').value;
+  const weight = document.getElementById('weight').value;
+  const status = document.getElementById('status').value;
+
+  if (!rollId) {
+    alert('Please select a roll.');
+    return false;
+  }
+  if (!weight || weight <= 0) {
+    alert('Please enter a valid weight.');
+    return false;
+  }
+  if (!status) {
+    alert('Please select a status.');
+    return false;
+  }
+  return true;
+}
+
+setTimeout(() => {
+  const messages = document.getElementById('messages');
+  if (messages) messages.style.display = 'none';
+}, 5000);
+</script>
+{% endblock %}
