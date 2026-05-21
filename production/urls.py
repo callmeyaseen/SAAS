@@ -25,4 +25,8 @@ urlpatterns = [
     path('create-wo/', views.create_wo, name='create_wo'),
     path('wo-list/', views.wo_list, name='wo_list'),
     path('wo-view/<int:pk>/', views.wo_detail, name='wo_detail'),
+    path('finishing-entry/', views.finishing_entry_form, name='finishing_entry_form'),
+    path('finishing-entry/delete/<str:voucher_no>/', views.finishing_entry_delete, name='finishing_entry_delete'),
+    path('finishing-entry/view/<str:voucher_no>/', views.finishing_entry_view, name='finishing_entry_view'),
+    path('finishing-reports/', views.finishing_reports, name='finishing_reports'),
 ]

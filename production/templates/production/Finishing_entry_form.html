@@ -1,0 +1,152 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+{% block title %}Finishing Entry Form{% endblock %}
+{% block content %}
+<main class="flex-1 min-h-screen overflow-hidden flex flex-col bg-gray-50">
+  <header class="bg-white shadow-sm p-4 flex justify-center items-center h-16 shrink-0">
+    <h1 class="text-xl font-semibold text-gray-800">Finishing Entry Form</h1>
+  </header>
+
+  <div class="flex-1 p-6 flex justify-center items-start">
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="rounded-lg border px-3 py-2 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% elif message.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800{% elif message.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% else %}border-slate-200 bg-slate-50 text-slate-800{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="grid gap-4 md:grid-cols-2 mb-6">
+        <form method="GET" class="grid gap-3">
+          <label for="entry_no" class="text-xs font-semibold text-gray-600">Search Quality Entry</label>
+          <div class="flex gap-2">
+            <input
+              id="entry_no"
+              name="entry_no"
+              type="text"
+              value="{{ entry_no_search }}"
+              placeholder="QE-0001"
+              class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300 text-sm shadow-sm"
+            />
+            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800 transition">Find</button>
+          </div>
+        </form>
+
+        <form method="GET" class="grid gap-3">
+          <label for="voucher_no" class="text-xs font-semibold text-gray-600">Search Finishing Voucher</label>
+          <div class="flex gap-2">
+            <input
+              id="voucher_no"
+              name="voucher_no"
+              type="text"
+              value="{{ voucher_search }}"
+              placeholder="FV-0001"
+              class="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300 text-sm shadow-sm"
+            />
+            <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800 transition">Find</button>
+          </div>
+        </form>
+      </div>
+
+      {% if quality_entry %}
+      <div class="grid gap-4 mb-6 md:grid-cols-2">
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Quality Entry</h2>
+          <div class="mt-4 grid gap-2 text-sm text-slate-900">
+            <div><span class="font-semibold">Entry No:</span> {{ quality_entry.entry_no }}</div>
+            <div><span class="font-semibold">Weight:</span> {{ quality_entry.weight }} kg</div>
+            <div><span class="font-semibold">Status:</span> {{ quality_entry.status }}</div>
+            <div><span class="font-semibold">Fault:</span> {{ quality_entry.fault_type|default:'-' }}</div>
+            <div><span class="font-semibold">Roll:</span> {{ quality_entry.roll.roll_no }}</div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Roll / Plan</h2>
+          <div class="mt-4 grid gap-2 text-sm text-slate-900">
+            <div><span class="font-semibold">Roll No:</span> {{ quality_entry.roll.roll_no }}</div>
+            <div><span class="font-semibold">Plan No:</span> {{ quality_entry.roll.plan.plan_no }}</div>
+            {% if quality_entry.roll.plan.work_order %}
+            <div><span class="font-semibold">Work Order:</span> {{ quality_entry.roll.plan.work_order.work_order_no }}</div>
+            {% endif %}
+            <div><span class="font-semibold">Press Hole:</span> {{ quality_entry.press_hole }}</div>
+            <div><span class="font-semibold">Double Kunda:</span> {{ quality_entry.double_kunda }}</div>
+            <div><span class="font-semibold">Needle Break:</span> {{ quality_entry.needle_break }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if quality_entry %}
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="entry_no" value="{{ quality_entry.entry_no }}">
+
+        <div class="grid gap-4 md:grid-cols-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Voucher Number</label>
+            <input
+              type="text"
+              name="voucher_no"
+              value="{{ finishing_entry.voucher_no|default:default_voucher_no }}"
+              readonly
+              class="w-full px-3 py-2 border rounded-lg border-gray-300 bg-slate-100 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Width</label>
+            <input
+              type="number"
+              step="0.01"
+              name="width"
+              value="{{ finishing_entry.width|default:'' }}"
+              class="w-full px-3 py-2 border rounded-lg border-gray-300 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">GSM</label>
+            <input
+              type="number"
+              step="0.01"
+              name="gsm"
+              value="{{ finishing_entry.gsm|default:'' }}"
+              class="w-full px-3 py-2 border rounded-lg border-gray-300 text-sm"
+            />
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Status</label>
+            <select name="status" class="w-full px-3 py-2 border rounded-lg border-gray-300 text-sm">
+              <option value="Pass" {% if finishing_entry.status == 'Pass' or not finishing_entry %}selected{% endif %}>Pass</option>
+              <option value="Hold" {% if finishing_entry.status == 'Hold' %}selected{% endif %}>Hold</option>
+              <option value="Reject" {% if finishing_entry.status == 'Reject' %}selected{% endif %}>Reject</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Remarks</label>
+            <textarea name="remarks" rows="3" class="w-full px-3 py-2 border rounded-lg border-gray-300 text-sm">{{ finishing_entry.remarks|default:'' }}</textarea>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Save Finishing</button>
+          {% if finishing_entry %}
+          <a href="{% url 'production:finishing_entry_view' finishing_entry.voucher_no %}" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800 transition">View</a>
+          <a href="{% url 'production:finishing_entry_delete' finishing_entry.voucher_no %}" onclick="return confirm('Delete finishing voucher {{ finishing_entry.voucher_no }}?')" class="px-4 py-2 border border-rose-300 text-rose-700 rounded-lg text-sm hover:bg-rose-50 transition">Delete</a>
+          {% endif %}
+        </div>
+      </form>
+      {% else %}
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
+        Search for an entry number or finishing voucher first to load the finishing section.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}

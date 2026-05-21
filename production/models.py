@@ -64,6 +64,25 @@ class QualityEntry(models.Model):
     def __str__(self):
         return f"{self.entry_no} - {self.roll.roll_no}"
 
+class FinishingEntry(models.Model):
+    STATUS_CHOICES = (
+        ('Pass', 'Pass'),
+        ('Hold', 'Hold'),
+        ('Reject', 'Reject'),
+    )
+
+    quality_entry = models.OneToOneField(QualityEntry, on_delete=models.CASCADE, related_name='finishing_entry')
+    roll = models.ForeignKey(ProductionRoll, on_delete=models.CASCADE, related_name='finishing_entries')
+    voucher_no = models.CharField(max_length=50, unique=True)
+    width = models.FloatField(blank=True, null=True)
+    gsm = models.FloatField(blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pass')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.voucher_no} - {self.roll.roll_no}"
+
 # ===================# WORK ORDER MASTER # ================================
 class WorkOrder(models.Model):
 

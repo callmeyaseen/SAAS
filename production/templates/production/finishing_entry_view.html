@@ -1,0 +1,60 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+{% block title %}Finishing Entry {{ finishing_entry.voucher_no }}{% endblock %}
+{% block content %}
+<main class="flex-1 min-h-screen bg-gray-50">
+  <header class="bg-white shadow-sm p-4 flex items-center justify-between">
+    <div>
+        <h1><a href="{% url 'production:finishing_entry_form' %}">Go Finishing Entries</a></h1>
+      <h1 class="text-xl font-semibold text-gray-800">Finishing Voucher {{ finishing_entry.voucher_no }}</h1>
+      <p class="text-sm text-slate-500">Roll {{ finishing_entry.roll.roll_no }}</p>
+    </div>
+    <a href="{% url 'production:finishing_entry_form' %}" class="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm hover:bg-slate-800">Back</a>
+  </header>
+
+  <div class="p-6 max-w-5xl mx-auto space-y-6">
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="rounded-3xl bg-white border border-slate-200 p-5">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Finishing Details</h2>
+        <div class="mt-4 space-y-3 text-sm text-slate-900">
+          <div><span class="font-semibold">Voucher No:</span> {{ finishing_entry.voucher_no }}</div>
+          <div><span class="font-semibold">Width:</span> {{ finishing_entry.width|default:'-' }}</div>
+          <div><span class="font-semibold">GSM:</span> {{ finishing_entry.gsm|default:'-' }}</div>
+          <div><span class="font-semibold">Status:</span> {{ finishing_entry.status }}</div>
+          <div><span class="font-semibold">Remarks:</span> {{ finishing_entry.remarks|default:'-' }}</div>
+          <div><span class="font-semibold">Saved At:</span> {{ finishing_entry.created_at|date:'Y-m-d H:i' }}</div>
+        </div>
+      </div>
+      <div class="rounded-3xl bg-white border border-slate-200 p-5">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Associated Quality Entry</h2>
+        <div class="mt-4 space-y-3 text-sm text-slate-900">
+          <div><span class="font-semibold">Entry No:</span> {{ finishing_entry.quality_entry.entry_no }}</div>
+          <div><span class="font-semibold">Weight:</span> {{ finishing_entry.quality_entry.weight }} kg</div>
+          <div><span class="font-semibold">Quality Status:</span> {{ finishing_entry.quality_entry.status }}</div>
+          <div><span class="font-semibold">Fault:</span> {{ finishing_entry.quality_entry.fault_type|default:'-' }}</div>
+          <div><span class="font-semibold">Roll No:</span> {{ finishing_entry.roll.roll_no }}</div>
+          <div><span class="font-semibold">Plan:</span> {{ finishing_entry.roll.plan.plan_no }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-3xl bg-white border border-slate-200 p-5">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Inspection Summary</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-3 text-sm text-slate-900">
+        <div class="rounded-2xl bg-slate-50 p-3">
+          <div class="text-xs uppercase text-slate-500">Press Hole</div>
+          <div class="mt-2 font-semibold text-slate-900">{{ finishing_entry.quality_entry.press_hole }}</div>
+        </div>
+        <div class="rounded-2xl bg-slate-50 p-3">
+          <div class="text-xs uppercase text-slate-500">Double Kunda</div>
+          <div class="mt-2 font-semibold text-slate-900">{{ finishing_entry.quality_entry.double_kunda }}</div>
+        </div>
+        <div class="rounded-2xl bg-slate-50 p-3">
+          <div class="text-xs uppercase text-slate-500">Needle Break</div>
+          <div class="mt-2 font-semibold text-slate-900">{{ finishing_entry.quality_entry.needle_break }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

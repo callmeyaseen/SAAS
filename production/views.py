@@ -2,7 +2,7 @@ import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from .models import ProductionPlan, ProductionRoll, QualityEntry, WorkOrder
+from .models import ProductionPlan, ProductionRoll, QualityEntry, FinishingEntry, WorkOrder
 from sale.models import SaleOrder
 from utilities.models import Machine, Product, Department, Recipe
 from django.contrib.auth.models import User
@@ -692,4 +692,116 @@ def wo_detail(request, pk):
     return render(request, 'production/wo_view.html', {
         'work_order': work_order,
         'wo_items': wo_items,
+    })
+    
+    
+# =========== Knitting Finishing Entry ==============
+def generate_finishing_voucher():
+    last_entry = FinishingEntry.objects.order_by('-id').first()
+    if last_entry and last_entry.voucher_no:
+        match = re.search(r'(\d+)$', last_entry.voucher_no)
+        if match:
+            next_num = int(match.group(1)) + 1
+        else:
+            next_num = 1
+    else:
+        next_num = 1
+    return f"FV-{next_num:04d}"
+
+
+def finishing_entry_form(request):
+    entry_no_search = request.GET.get('entry_no', '').strip()
+    voucher_search = request.GET.get('voucher_no', '').strip()
+    quality_entry = None
+    finishing_entry = None
+    default_voucher_no = generate_finishing_voucher()
+
+    if voucher_search:
+        finishing_entry = FinishingEntry.objects.filter(voucher_no__iexact=voucher_search).select_related('quality_entry__roll__plan__work_order').first()
+        if finishing_entry:
+            quality_entry = finishing_entry.quality_entry
+        else:
+            messages.warning(request, f"No finishing voucher found for {voucher_search}.")
+    elif entry_no_search:
+        quality_entry = QualityEntry.objects.filter(entry_no__iexact=entry_no_search).select_related('roll__plan__work_order').first()
+        if quality_entry:
+            finishing_entry = getattr(quality_entry, 'finishing_entry', None)
+        else:
+            messages.warning(request, f"No quality entry found for Entry No {entry_no_search}.")
+
+    if request.method == "POST":
+        entry_no = request.POST.get('entry_no', '').strip()
+        voucher_no = request.POST.get('voucher_no', '').strip() or default_voucher_no
+
+        quality_entry = QualityEntry.objects.filter(entry_no__iexact=entry_no).select_related('roll__plan__work_order').first()
+        if not quality_entry:
+            messages.error(request, "Please provide a valid quality entry before saving finishing details.")
+            return redirect('production:finishing_entry_form')
+
+        finishing_entry = FinishingEntry.objects.filter(quality_entry=quality_entry).first()
+        if finishing_entry and finishing_entry.voucher_no.lower() != voucher_no.lower():
+            duplicate = FinishingEntry.objects.filter(voucher_no__iexact=voucher_no).exclude(pk=finishing_entry.pk).first()
+        else:
+            duplicate = FinishingEntry.objects.filter(voucher_no__iexact=voucher_no).first()
+
+        if duplicate and (not finishing_entry or duplicate.pk != finishing_entry.pk):
+            messages.error(request, f"Voucher {voucher_no} is already in use.")
+            return redirect('production:finishing_entry_form')
+
+        if not finishing_entry:
+            finishing_entry = FinishingEntry(
+                quality_entry=quality_entry,
+                roll=quality_entry.roll,
+                voucher_no=voucher_no,
+            )
+        else:
+            finishing_entry.voucher_no = voucher_no
+
+        finishing_entry.width = float(request.POST.get('width') or 0) if request.POST.get('width') else None
+        finishing_entry.gsm = float(request.POST.get('gsm') or 0) if request.POST.get('gsm') else None
+        finishing_entry.remarks = request.POST.get('remarks', '').strip() or None
+        finishing_entry.status = request.POST.get('status', 'Pass')
+        finishing_entry.save()
+
+        messages.success(request, f"Finishing saved with Voucher {finishing_entry.voucher_no}.")
+        return redirect('production:finishing_entry_view', voucher_no=finishing_entry.voucher_no)
+
+    return render(request, 'production/finishing_entry_form.html', {
+        'quality_entry': quality_entry,
+        'finishing_entry': finishing_entry,
+        'entry_no_search': entry_no_search,
+        'voucher_search': voucher_search,
+        'default_voucher_no': default_voucher_no,
+    })
+
+
+def finishing_entry_delete(request, voucher_no):
+    finishing_entry = get_object_or_404(FinishingEntry, voucher_no__iexact=voucher_no)
+    finishing_entry.delete()
+    messages.success(request, f"Finishing voucher {voucher_no} deleted successfully.")
+    return redirect('production:finishing_entry_form')
+
+
+def finishing_entry_view(request, voucher_no):
+    finishing_entry = get_object_or_404(FinishingEntry, voucher_no__iexact=voucher_no)
+    return render(request, 'production/finishing_entry_view.html', {
+        'finishing_entry': finishing_entry,
+    })
+
+
+def finishing_reports(request):
+    q = request.GET.get('q', '').strip()
+    entries = FinishingEntry.objects.select_related('quality_entry__roll__plan__work_order')
+    if q:
+        entries = entries.filter(
+            Q(voucher_no__icontains=q) |
+            Q(quality_entry__entry_no__icontains=q) |
+            Q(roll__roll_no__icontains=q) |
+            Q(roll__plan__plan_no__icontains=q) |
+            Q(roll__plan__work_order__work_order_no__icontains=q)
+        )
+    entries = entries.order_by('-created_at')
+    return render(request, 'production/finishing_reports.html', {
+        'entries': entries,
+        'q': q,
     })
